@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "314122526144",
+    "project_id": "cadashboard-3ddbf",
+    "storage_bucket": "cadashboard-3ddbf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:314122526144:android:4850b496cdaf34ea287c25",
+        "android_client_info": {
+          "package_name": "com.orgpro.cadashboard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARhGaJCgUNGUc5qOVVYygcCski0hJJfhM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
