@@ -89,7 +89,13 @@ class LoginVM extends BaseModel {
                 debugPrint("AfterLoginApi LoginVM Failed -> :: $success :: $message");
               },
             );
-            Navigator.pushAndRemoveUntil(context, cusNavigate(const HomeScreen()), (route) => false);
+            // Pass the freshly issued tokenID into HomeScreen so it uses
+            // this token for initial menu loading instead of any older stored token.
+            Navigator.pushAndRemoveUntil(
+              context,
+              cusNavigate(HomeScreen(tokenId: response.tokenId)),
+              (route) => false,
+            );
           }
         },
         failedResponse: (success, message) {
@@ -136,7 +142,11 @@ class LoginVM extends BaseModel {
                 debugPrint("AfterLoginApi LoginVM Failed -> :: $success :: $message");
               },
             );
-            Navigator.pushAndRemoveUntil(context, cusNavigate(const HomeScreen()), (route) => false);
+            Navigator.pushAndRemoveUntil(
+              context,
+              cusNavigate(HomeScreen(tokenId: response.tokenId)),
+              (route) => false,
+            );
           }
         },
         failedResponse: (success, message) {

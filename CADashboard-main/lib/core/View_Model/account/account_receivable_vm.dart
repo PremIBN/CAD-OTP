@@ -552,10 +552,9 @@ class AccountReceivableVM extends BaseModel{
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     viewLoader.dispose();
     currency.dispose();
+    super.dispose();
   }
 
 

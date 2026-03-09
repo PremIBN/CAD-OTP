@@ -1,4 +1,5 @@
 import 'package:cadashboard/core/repository/account/receivable_data_repository.dart';
+import 'package:cadashboard/core/repository/document/document_repository.dart';
 import 'package:cadashboard/core/repository/add_logged_in_area_address_repository.dart';
 import 'package:cadashboard/core/repository/change_password_repository.dart';
 import 'package:cadashboard/core/repository/check_token_repository.dart';
@@ -79,6 +80,9 @@ class BaseModel with ChangeNotifier {
 
   /// Report
   ReceivableDataRepo receivableDataRepo = ReceivableDataRepo();
+
+  /// Document
+  DocumentRepository documentRepo = DocumentRepository();
 
   /// Notification
   NotificationRepo notificationRepo = NotificationRepo();

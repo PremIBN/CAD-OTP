@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cadashboard/core/common/common_function.dart';
 import 'package:cadashboard/core/model/client/get_all_client_model.dart';
 import 'package:cadashboard/core/utils/base_model.dart';
@@ -41,7 +43,7 @@ class ViewClientVM extends BaseModel{
     );
   }
 
-  Future<void> getAllClient(BuildContext context,String? search,String? start) async {
+  Future<void> getAllClient(BuildContext context, String? search, String? start, [Completer<void>? completer]) async {
     appPrint('StartPage = $startPage : EndPage = $endPage');
     await clientRepo.getClient(
       searchText: search ?? "",
@@ -59,12 +61,25 @@ class ViewClientVM extends BaseModel{
         appPrint(maxPage);
         notifyListeners();
         viewLoader.value = ViewState.success;
+        completer?.complete();
       },
       failed: (message) {
         appPrint('Get all Client : $message');
         CommonFunction.showSnackBar(context: context, isError: true, message: message);
         viewLoader.value = ViewState.failed;
+        completer?.complete();
       },
     );
+  }
+
+  /// Pull-to-refresh: reloads client list from start. Completes when done (success or failure).
+  Future<void> refresh(BuildContext context) async {
+    final c = Completer<void>();
+    client.clear();
+    startPage = 0;
+    viewLoader.value = ViewState.loading;
+    notifyListeners();
+    getAllClient(context, search ? searchController.text : null, "0", c);
+    await c.future;
   }
 }

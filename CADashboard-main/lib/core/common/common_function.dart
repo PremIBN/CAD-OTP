@@ -5,7 +5,7 @@ import '../utils/colors.dart';
 import 'package:html/parser.dart' as htmlParser;
 
 class CommonFunction {
-  static errorTextWidget(String title) {
+  static Widget errorTextWidget(String title) {
     return Center(
       child: Text(
         title,
@@ -22,7 +22,8 @@ class CommonFunction {
     return htmlParser.parse(htmlText).toString();
   }
 
-  static showSnackBar({required BuildContext context, required bool isError, required String message}) {
+  static void showSnackBar({required BuildContext context, required bool isError, required String message}) {
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       duration: const Duration(seconds: 3),
       backgroundColor: isError ? Colors.red : AppColor.logoColor,
@@ -62,7 +63,7 @@ class CommonFunction {
     );
   }
 
-  static dateTimeDecode(String input) {
+  static String dateTimeDecode(String input) {
     RegExp datePattern = RegExp(r'\d{2}-[A-Za-z]{3}-\d{2}');
     Match? match = datePattern.firstMatch(input);
 

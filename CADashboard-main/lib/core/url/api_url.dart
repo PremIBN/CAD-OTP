@@ -58,16 +58,129 @@ class Urls{
   static const String ReceivableData = '${Report}GetAccountReceivableData';
   static const String GetCurrencyWiseTotalAmountDetails = '${Report}GetCurrencyWiseTotalAmountDetails';
 
+  /// Menu / RBAC
+  /// Returns role-filtered menu and submenu items for the authenticated user.
+  static const String CreateMenuSubMenu = '${Authenticate}CreateMenuSubMenu';
 
 
+  /// Document
+  static const String Document = '${baseUrl}Document/';
+  static String getFolderList({
+    required String tokenID,
+    String clientOrgID = '2',
+    String? financialYearID,
+  }) {
+    var url = '${Document}GetFolderList?tokenID=$tokenID&clientOrgID=$clientOrgID';
+    if (financialYearID != null && financialYearID.isNotEmpty) {
+      // Use same query key as Task APIs: "financialyearid"
+      url += '&financialyearid=$financialYearID';
+    }
+    return url;
+  }
+  /// Folder contents (FolderDocuments + FolderList) for download. Same client/fy as current filter.
+  static String getFolderContents({
+    required String tokenID,
+    required int folderID,
+    String clientOrgID = '0',
+    String? financialYearID,
+  }) {
+    var url = '${Document}GetFolderList?tokenID=$tokenID&clientOrgID=$clientOrgID&folderID=$folderID';
+    if (financialYearID != null && financialYearID.isNotEmpty) {
+      url += '&financialyearid=$financialYearID';
+    }
+    return url;
+  }
+  static String getDocumentURL({required String tokenID, required int id}) =>
+      '${Document}GetDocumentURL?tokenID=$tokenID&id=$id';
+  static String downloadDocument({required String tokenID, required int documentID}) =>
+      '${Document}DownloadDocument?tokenID=$tokenID&documentID=$documentID';
+  static String checkFolderNameExist({
+    required String tokenID,
+    required String foldername,
+    required int parentfolderid,
+  }) =>
+      '${Document}CheckIfFolderNameExist?tokenID=$tokenID&foldername=${Uri.encodeComponent(foldername)}&parentfolderid=$parentfolderid';
+  static const String addFolder = '${Document}AddFolder';
+
+  /// Upload override: full URL for document upload. Must match backend action name exactly (PascalCase: UploadDocument).
+  static const String documentUploadEndpointOverride =
+      'https://www.cadashboard.com/web/api/Document/UploadFile';
+
+  /// Upload: POST multipart. App tries override first, then these paths (SaveDocument, UploadDocument, UploadFile, etc.).
+  static const String primaryDocumentUploadPath = '${Document}SaveDocument';
+  static const String saveDocumentPath = primaryDocumentUploadPath;
+  static const String uploadDocumentPath = '${Document}UploadDocument';
+  static const String uploadPath = '${Document}Upload';
+  static const String uploadFilePath = '${Document}UploadFile';
+  static const String addDocumentPath = '${Document}AddDocument';
+  static const String postDocumentPath = '${Document}Post';
+  static String primaryDocumentUploadWithQuery({required String tokenID, required int docFolderID}) =>
+      '${primaryDocumentUploadPath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String uploadDocumentWithQuery({required String tokenID, required int docFolderID}) =>
+      '${uploadDocumentPath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String uploadWithQuery({required String tokenID, required int docFolderID}) =>
+      '${uploadPath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String uploadFileWithQuery({required String tokenID, required int docFolderID}) =>
+      '${uploadFilePath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String addDocumentWithQuery({required String tokenID, required int docFolderID}) =>
+      '${addDocumentPath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String postDocumentWithQuery({required String tokenID, required int docFolderID}) =>
+      '${postDocumentPath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String saveDocumentWithQuery({required String tokenID, required int docFolderID}) =>
+      '${saveDocumentPath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+
+  static const String uploadDocumentJsonPath = '${Document}UploadDocument';
+  static const String addDocumentJsonPath = '${Document}AddDocument';
+
+  static String documentControllerWithQuery({required String tokenID, required int docFolderID}) =>
+      '${baseUrl}Document?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+
+  static const String Documents = '${baseUrl}Documents/';
+  static String documentsUploadWithQuery({required String tokenID, required int docFolderID}) =>
+      '${Documents}Upload?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String documentsUploadFileWithQuery({required String tokenID, required int docFolderID}) =>
+      '${Documents}UploadFile?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String documentsUploadDocumentWithQuery({required String tokenID, required int docFolderID}) =>
+      '${Documents}UploadDocument?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String documentsSaveDocumentWithQuery({required String tokenID, required int docFolderID}) =>
+      '${Documents}SaveDocument?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String documentsAddDocumentWithQuery({required String tokenID, required int docFolderID}) =>
+      '${Documents}AddDocument?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static const String documentsUploadDocumentPath = '${Documents}UploadDocument';
+  static const String documentsAddDocumentPath = '${Documents}AddDocument';
+
+  static const String File = '${baseUrl}File/';
+  static const String fileUploadPath = '${File}Upload';
+  static const String fileUploadFilePath = '${File}UploadFile';
+  static String fileUploadWithQuery({required String tokenID, required int docFolderID}) =>
+      '${fileUploadPath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+  static String fileUploadFileWithQuery({required String tokenID, required int docFolderID}) =>
+      '${fileUploadFilePath}?tokenID=${Uri.encodeComponent(tokenID)}&docFolderID=$docFolderID';
+
+  static String moveDocument({
+    required String tokenID,
+    required int documentID,
+    required int targetFolderID,
+  }) =>
+      '${Document}MoveDocument?tokenID=$tokenID&documentID=$documentID&targetFolderID=$targetFolderID';
+  static String moveFolder({
+    required String tokenID,
+    required int folderID,
+    required int targetFolderID,
+  }) =>
+      '${Document}MoveFolder?tokenID=$tokenID&folderID=$folderID&targetFolderID=$targetFolderID';
+  static String lockDocument({required String tokenID, required int id}) =>
+      '${Document}LockDocument?tokenID=$tokenID&id=$id';
+  static String unlockDocument({required String tokenID, required int id}) =>
+      '${Document}UnLockDocument?tokenID=$tokenID&id=$id';
+  static String unshareDocument({required String tokenID, required int id}) =>
+      '${Document}UnShareDocument?tokenID=$tokenID&id=$id';
 
   ///     ComboBox value
   static const String clientType = 'ClientType';
   static const String firmType = 'FirmType';
   static const String industryType = 'IndustryType';
   static const String aRPriority = 'ARPriority';
-
-
 
   static const String youtube = 'https://www.youtube.com/channel/UCwqPI-XdpWlnxUEm6IrYMVg';
   static const String facebook = 'https://www.facebook.com/CADashboard';

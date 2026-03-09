@@ -13,6 +13,8 @@ import 'package:cadashboard/ui/widget/task_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'package:cadashboard/core/repository/menu_repository.dart';
+
 import '../../../core/model/task/add_task/GetTaskRelatedDropDowns_model.dart';
 
 class ViewTasks extends StatefulWidget {
@@ -35,21 +37,15 @@ class _ViewTasksState extends State<ViewTasks> {
     super.initState();
   }
 
-  /*financialYearStore(String fy) async{
-    SharedPreferences pre = await SharedPreferences.getInstance();
-    pre.setString(PreferenceHelper.financialYearID, fy);
-  }*/
-
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StatelessBaseView(
+    return StatelessBaseView<TaskVM>(
       model: TaskVM(),
       onInitState: (p0) {
         p0.dropDown(context);
@@ -79,19 +75,20 @@ class _ViewTasksState extends State<ViewTasks> {
                     onClickSearchTask(context, model);
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    Navigator.push(context, cusNavigate(const AddTakScreen())).then((value){
-                      model.getTask.clear();
-                      model.task = 0;
-                      model.updateUI();
-                      model.viewLoader.value = ViewState.loading;
-                      model.taskLoader.value = ViewState.loading;
-                      model.getTaskList(context,null,null,null);
-                    });
-                  },
-                ),
+                if (MenuRepository.canAddTask)
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () {
+                      Navigator.push(context, cusNavigate(const AddTakScreen())).then((value){
+                        model.getTask.clear();
+                        model.task = 0;
+                        model.updateUI();
+                        model.viewLoader.value = ViewState.loading;
+                        model.taskLoader.value = ViewState.loading;
+                        model.getTaskList(context,null,null,null);
+                      });
+                    },
+                  ),
                 const SizedBox(width: 10,),
               ],
             ),
@@ -152,12 +149,29 @@ class _ViewTasksState extends State<ViewTasks> {
                           if(value == ViewState.loading){
                             return CommonLoader();
                           } else if(value == ViewState.success) {
+                            Future<void> onRefresh() async {
+                              try {
+                                await model.refresh(buildContext, client, employee, fy);
+                              } catch (_) {}
+                            }
                             if(model.getTask.length == 1){
-                              return EmptyData();
+                              return RefreshIndicator(
+                                onRefresh: onRefresh,
+                                child: SingleChildScrollView(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  child: SizedBox(
+                                    height: MediaQuery.of(context).size.height * 0.5,
+                                    child: EmptyData(),
+                                  ),
+                                ),
+                              );
                             } else {
-                              return ListView.builder(
-                                controller: scrollController,
-                                itemCount: (model.getTask.length + 1),
+                              return RefreshIndicator(
+                                onRefresh: onRefresh,
+                                child: ListView.builder(
+                                  controller: scrollController,
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  itemCount: (model.getTask.length + 1),
                                 itemBuilder: (context, index) {
                                   if(model.getTask.length == index){
                                     return (model.getTask.length >= (model.maxTask+1)) ? EmptyData(emptyData: "End of list ") : CommonLoader();
@@ -176,16 +190,33 @@ class _ViewTasksState extends State<ViewTasks> {
                                         assign: task.taskStatus,
                                         subTaskCount: task.subTaskCount.toString(),
                                         onTap: () {
-                                          Navigator.push(context, cusNavigate(TaskDetailsScreen(
-                                            taskId: task.taskId.toString(),
-                                            taskName: task.taskName!,))
+                                          if (!MenuRepository.canUpdateTask) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                backgroundColor: Colors.amber,
+                                                behavior: SnackBarBehavior.floating,
+                                                content: const Text(
+                                                  "You don't have permission to update",
+                                                  style: TextStyle(color: Colors.black),
+                                                ),
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          Navigator.push(
+                                            context,
+                                            cusNavigate(
+                                              TaskDetailsScreen(
+                                                taskId: task.taskId.toString(),
+                                                taskName: task.taskName!,
+                                              ),
+                                            ),
                                           ).then((value) {
                                             model.getTask.clear();
                                             model.task = 0;
                                             model.updateUI();
-                                            // model.viewLoader.value = ViewState.loading;
                                             model.taskLoader.value = ViewState.loading;
-                                            model.getTaskList(context,client,employee,fy);
+                                            model.getTaskList(context, client, employee, fy);
                                           });
                                         },
                                         subTaskTap: () {
@@ -199,10 +230,24 @@ class _ViewTasksState extends State<ViewTasks> {
                                     );
                                   }
                                 },
+                                ),
                               );
                             }
                           } else{
-                            return EmptyData(emptyData: model.errorMessage);
+                            return RefreshIndicator(
+                              onRefresh: () async {
+                                try {
+                                  await model.refresh(buildContext, client, employee, fy);
+                                } catch (_) {}
+                              },
+                              child: SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: SizedBox(
+                                  height: MediaQuery.of(context).size.height * 0.5,
+                                  child: EmptyData(emptyData: model.errorMessage),
+                                ),
+                              ),
+                            );
                           }
                         },
                       ),

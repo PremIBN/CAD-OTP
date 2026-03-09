@@ -20,6 +20,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
 import 'package:cadashboard/main.dart';
+import 'package:cadashboard/core/repository/menu_repository.dart';
 
 class TaskDetailsScreen extends StatefulWidget {
 
@@ -53,7 +54,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
   List<TaskStatusList> taskStatusList = [];
 
   @override
-  initState(){
+  void initState() {
     super.initState();
     getTaskStatusList();
   }
@@ -74,6 +75,57 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
 
   @override
   Widget build(BuildContext detailTaskContext) {
+    // Build-time guard: if backend has disabled Task "Update", never show the
+    // update form — show permission message so UI directly reflects API.
+    if (!MenuRepository.canUpdateTask && widget.isSubtask != true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (detailTaskContext.mounted) {
+          ScaffoldMessenger.of(detailTaskContext).showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.amber,
+              behavior: SnackBarBehavior.floating,
+              content: Text(
+                "You don't have permission to update",
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          );
+          Navigator.of(detailTaskContext).pop();
+        }
+      });
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Update Task'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(detailTaskContext).pop(),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.warning_amber_rounded, size: 56, color: Colors.amber[700]),
+                const SizedBox(height: 20),
+                Text(
+                  "You don't have permission to update",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[800], fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(detailTaskContext).pop(),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+                  child: const Text('Go back', style: TextStyle(color: Colors.black87)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return StatelessBaseView(
       model:TaskDetailsVM() ,

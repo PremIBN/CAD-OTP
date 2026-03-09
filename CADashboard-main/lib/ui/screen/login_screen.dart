@@ -42,12 +42,14 @@ class _LoginScreenState extends State<LoginScreen> {
           // Check if location services are enabled
 
           bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-          if(Platform.isIOS){
+          if (Platform.isIOS) {
             if (!serviceEnabled) {
-              locationDialog(
-                  context: navigatorKey.currentContext!,
-                  onTapGotIt: () => Navigator.pop(context)
-              );
+              if (buildContext.mounted) {
+                locationDialog(
+                  context: buildContext,
+                  onTapGotIt: () => Navigator.pop(buildContext),
+                );
+              }
               model.buttonLoader.value = false;
               return false;
             }
@@ -68,11 +70,12 @@ class _LoginScreenState extends State<LoginScreen> {
           }
 
           final position = await Geolocator.getCurrentPosition();
-          model.login(navigatorKey.currentContext!, model.usernameController.text, model.passwordController.text,
+          if (!buildContext.mounted) return false;
+          model.login(buildContext, model.usernameController.text, model.passwordController.text,
             position.latitude.toString(), position.longitude.toString()).then((value) {
           });
 
-          return true ;
+          return true;
         }
 
 

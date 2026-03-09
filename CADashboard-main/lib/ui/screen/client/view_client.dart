@@ -11,6 +11,7 @@ import 'package:cadashboard/ui/widget/cilent_card.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:cadashboard/core/repository/menu_repository.dart';
 
 class ViewClient extends StatefulWidget {
   const ViewClient({super.key});
@@ -54,19 +55,20 @@ class _ViewClientState extends State<ViewClient> {
                     isSearch = true;
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    Navigator.push(viewClientContext, cusNavigate(const AddClientScreen())).then((value) {
-                      model.viewLoader.value = ViewState.loading;
-                      model.client.clear();
-                      model.search = false;
-                      model.startPage = 0;
-                      model.updateUI();
-                      model.checkToken(viewClientContext);
-                    });
-                  },
-                ),
+                if (MenuRepository.canAddClient)
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () {
+                      Navigator.push(viewClientContext, cusNavigate(const AddClientScreen())).then((value) {
+                        model.viewLoader.value = ViewState.loading;
+                        model.client.clear();
+                        model.search = false;
+                        model.startPage = 0;
+                        model.updateUI();
+                        model.checkToken(viewClientContext);
+                      });
+                    },
+                  ),
                 const SizedBox(width: 10,),
               ],
             ),
@@ -123,9 +125,16 @@ class _ViewClientState extends State<ViewClient> {
                       );
                     } else if(value == ViewState.success){
                       return Expanded(
-                        child: ListView.builder(
-                          controller: scrollController,
-                          itemCount: (model.client.length+1),
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            try {
+                              await model.refresh(buildContext);
+                            } catch (_) {}
+                          },
+                          child: ListView.builder(
+                            controller: scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: (model.client.length+1),
                           itemBuilder: (context, index) {
                             if(model.maxPage <= index) {
                               return Padding(
@@ -153,13 +162,31 @@ class _ViewClientState extends State<ViewClient> {
                                     groupName: client.groupName,
                                     onTap: () {
                                       FocusScope.of(context).unfocus();
-                                      Navigator.push(context, cusNavigate(ClientDetails(
-                                        orgID: client.orgId.toString(),
-                                        branchName: client.branchName,
-                                        clientType: client.clientType,
-                                        currenyName: client.currency,
-                                        groupName: client.groupName,
-                                      ))).then((value) {
+                                      // Respect backend "Update" permission for Client.
+                                      // When disabled, block navigation and show a clear message.
+                                      if (!MenuRepository.canUpdateClient) {
+                                        ScaffoldMessenger.of(viewClientContext).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Colors.amber,
+                                            behavior: SnackBarBehavior.floating,
+                                            content: const Text(
+                                              'You do not have permission to edit',
+                                              style: TextStyle(color: Colors.black),
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      Navigator.push(
+                                        context,
+                                        cusNavigate(ClientDetails(
+                                          orgID: client.orgId.toString(),
+                                          branchName: client.branchName,
+                                          clientType: client.clientType,
+                                          currenyName: client.currency,
+                                          groupName: client.groupName,
+                                        )),
+                                      ).then((value) {
                                         FocusScope.of(context).unfocus();
                                         model.viewLoader.value = ViewState.loading;
                                         model.client.clear();
@@ -174,10 +201,24 @@ class _ViewClientState extends State<ViewClient> {
                               }
                             }
                           },
+                          ),
                         ),
                       );
                     } else {
-                      return EmptyData();
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          try {
+                            await model.refresh(buildContext);
+                          } catch (_) {}
+                        },
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: EmptyData(),
+                          ),
+                        ),
+                      );
                     }
                   },
                 ),

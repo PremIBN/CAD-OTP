@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
+
 import 'package:cadashboard/core/common/common_function.dart';
 import 'package:cadashboard/core/model/task/GetAllOrgTasks_model.dart';
 import 'package:cadashboard/core/model/task/add_task/FinancialYear_model.dart';
@@ -97,11 +99,11 @@ class TaskVM extends BaseModel{
     preferences.setString(PreferenceHelper.taskStatus, taskStatus);
 
     notifyListeners();
-    getTaskList(context,null,null,null);
+    getTaskList(context, null, null, null);
   }
 
 
-  Future<void> getTaskList(BuildContext context, String? client, String? employee, String? fy) async {
+  Future<void> getTaskList(BuildContext context, String? client, String? employee, String? fy, [Completer<void>? completer]) {
     getTaskStatusCountRepo.getTaskStatusCount(
       employee: employee,
       client: client,
@@ -140,20 +142,22 @@ class TaskVM extends BaseModel{
 
         notifyListeners();
         viewLoader.value = ViewState.success;
-        getAllTask(context, tabIndex.toString(), client, employee, fy);
+        getAllTask(context, tabIndex.toString(), client, employee, fy, completer);
       },
       failedResponse: (success, message, statusCode) {
         errorMessage = message;
         CommonFunction.showSnackBar(context: context, isError: true, message: message);
         viewLoader.value = ViewState.failed;
+        completer?.complete();
         if(statusCode == 504){
           Navigator.pushAndRemoveUntil(context, cusNavigate(const LoginScreen()), (route) => false);
         }
       },
     );
+    return completer?.future ?? Future.value();
   }
 
-  Future<void> getAllTask(BuildContext context,String taskType, String? client, String? employee, String? fy) async {
+  Future<void> getAllTask(BuildContext context,String taskType, String? client, String? employee, String? fy, [Completer<void>? completer]) {
     taskRepo.gettask(
       start: task.toString(),
       statusid: taskStatus,
@@ -170,13 +174,27 @@ class TaskVM extends BaseModel{
         }
         taskLoader.value = ViewState.success;
         notifyListeners();
+        completer?.complete();
       },
       failed: (message) {
         appPrint('Get Task  -----> $message');
         CommonFunction.showSnackBar(context: context, isError: true, message: message);
         taskLoader.value = ViewState.failed;
+        completer?.complete();
       },
     );
+    return completer?.future ?? Future.value();
+  }
+
+  /// Pull-to-refresh: reloads task list and completes when done (success or failure).
+  Future<void> refresh(BuildContext context, String? client, String? employee, String? fy) async {
+    final completer = Completer<void>();
+    getTask.clear();
+    task = 0;
+    taskLoader.value = ViewState.loading;
+    notifyListeners();
+    getTaskList(context, client, employee, fy, completer);
+    await completer.future;
   }
 
 
@@ -213,11 +231,10 @@ class TaskVM extends BaseModel{
     getTaskList(context, null, employee);
   }*/
 
-@override
+  @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
     viewLoader.dispose();
+    super.dispose();
   }
 
 }

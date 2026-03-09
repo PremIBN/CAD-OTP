@@ -195,12 +195,15 @@ class LocationService {
     // Check if location services are enabled
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if(Platform.isIOS){
+    if (Platform.isIOS) {
       if (!serviceEnabled) {
-        locationDialog(
-            context: navigatorKey.currentContext!,
-            onTapGotIt: () => Navigator.pop(context)
-        );
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          locationDialog(
+            context: ctx,
+            onTapGotIt: () => Navigator.pop(ctx),
+          );
+        }
         return false;
       }
     }

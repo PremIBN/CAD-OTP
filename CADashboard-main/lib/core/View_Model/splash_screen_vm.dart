@@ -22,34 +22,42 @@ class SplashScreenVM extends BaseModel{
       Future.delayed(
         const Duration(milliseconds: 1000),
             () async{
-          Navigator.pushAndRemoveUntil(context, cusNavigate(const LoginScreen()), (route) => false);
+          if (context.mounted) {
+            Navigator.pushAndRemoveUntil(context, cusNavigate(const LoginScreen()), (route) => false);
+          }
         },
       );
     }else{
       tokenRepo.checkToken(
         token: preferences.getString(PreferenceHelper.userToken) ?? "",
         successResponse: (success, message, response) {
-          Future.delayed(
-            const Duration(milliseconds: 500,),
-                () async{
-              Navigator.pushAndRemoveUntil(context, cusNavigate(const HomeScreen()), (route) => false);
-            },
-          );
-
           preferences.setBool(PreferenceHelper.isSignIn, true);
           appPrint('Token : $message');
           viewLoader.value = ViewState.success;
-        },
-        failedResponse: (success, message, code) {
-          appPrint('Token : $message');
-          CommonFunction.showSnackBar(context: context, isError: true, message: 'Your Session has been Expired');
           Future.delayed(
             const Duration(milliseconds: 500),
                 () async{
-              Navigator.pushAndRemoveUntil(context, cusNavigate(const LoginScreen()), (route) => false);
+              if (context.mounted) {
+                // Auto-login from stored token: no explicit session token passed.
+                Navigator.pushAndRemoveUntil(context, cusNavigate(const HomeScreen()), (route) => false);
+              }
             },
           );
+        },
+        failedResponse: (success, message, code) {
+          appPrint('Token : $message');
           viewLoader.value = ViewState.failed;
+          if (context.mounted) {
+            CommonFunction.showSnackBar(context: context, isError: true, message: 'Your Session has been Expired');
+            Future.delayed(
+              const Duration(milliseconds: 500),
+                  () async{
+                if (context.mounted) {
+                  Navigator.pushAndRemoveUntil(context, cusNavigate(const LoginScreen()), (route) => false);
+                }
+              },
+            );
+          }
         },
       );
     }

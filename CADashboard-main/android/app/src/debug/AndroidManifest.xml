@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Camera for Take Photo / Scan Document (merged with main in debug builds) -->
+    <uses-permission android:name="android.permission.CAMERA" />
 </manifest>

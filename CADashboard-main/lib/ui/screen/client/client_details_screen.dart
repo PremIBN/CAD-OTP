@@ -6,6 +6,7 @@ import 'package:cadashboard/core/utils/view_state.dart';
 import 'package:cadashboard/ui/screen/client/add_client_screen.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:flutter/material.dart';
+import 'package:cadashboard/core/repository/menu_repository.dart';
 
 class ClientDetails extends StatefulWidget{
 
@@ -33,7 +34,6 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     tabController = TabController(length: tabs.length, vsync: this);
   }
@@ -75,7 +75,18 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
                 IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () {
-                    Navigator.push(context, cusNavigate(AddClientScreen(orgId: widget.orgID,))).then((value) {
+                    if (!MenuRepository.canUpdateClient) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('You do not have permission to edit'),
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      cusNavigate(AddClientScreen(orgId: widget.orgID)),
+                    ).then((value) {
                       model.viewLoader.value = ViewState.loading;
                       model.owner.clear();
                       model.address.clear();
@@ -85,7 +96,7 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
                     });
                   },
                 ),
-                const SizedBox(width: 10,),
+                const SizedBox(width: 10),
               ],
             ),
 
@@ -164,7 +175,7 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
                                 ),
                               ),
                             ) : EmptyData(),
-                            
+
                             model.owner.isNotEmpty ? Padding(
                               padding: const EdgeInsets.all(10).copyWith(top: 20),
                               child: SingleChildScrollView(

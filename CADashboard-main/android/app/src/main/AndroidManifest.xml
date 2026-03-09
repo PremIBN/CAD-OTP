@@ -1,16 +1,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-
+    <!-- Document upload: INTERNET (upload to server), CAMERA (Take Photo / Scan), storage (select files from device) -->
+    <!-- Runtime permissions: requested when user taps Upload files or Take Photo / Scan Document; denial handled in app -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+   <!--- <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+  <!--  <uses-permission android:name="android.permission.READ_PHONE_STATE"/>   -->
+
+<!-- Android 13+ (API 33 and above)
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" /> -->
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>  -->
+
 
     <!--    Speech to text-->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
@@ -22,7 +32,8 @@
     <application
         android:label="CADashboard"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -53,6 +64,16 @@
         <meta-data
             android:name="firebase_crashlytics_collection_enabled"
             android:value="false" />
+        <!-- FileProvider for opening local files (avoids FileUriExposedException on Android 7+) -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
         <queries>
             <intent>

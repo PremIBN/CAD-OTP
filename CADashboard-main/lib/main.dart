@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'dart:io' show Platform;
+import 'dart:io';
 import 'core/common/app_version_service.dart';
 import 'firebase_options.dart';
 import 'package:flutter/services.dart';
@@ -16,16 +16,37 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:cadashboard/core/services/notification_service.dart';
 import 'package:permission_handler/permission_handler.dart' show Permission, PermissionActions, PermissionStatusGetters;
 
+/// Trusts HTTPS certificate only for the app's API host(s).
+/// Use when the server uses a CA not in the device trust store (e.g. internal CA or incomplete chain).
+class _ApiHttpOverrides extends HttpOverrides {
+  static const _apiHosts = ['www.cadashboard.com', 'cadashboard.com'];
+
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) {
+        return _apiHosts.contains(host.toLowerCase());
+      };
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Upgrader.clearSavedSettings();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await requestNotificationPermission();
-  preferences = await SharedPreferences.getInstance();
-  await AppVersionService.init();
-  appCrashlytics();
+  HttpOverrides.global = _ApiHttpOverrides();
+  try {
+    await Upgrader.clearSavedSettings();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await requestNotificationPermission();
+    preferences = await SharedPreferences.getInstance();
+    await AppVersionService.init();
+    appCrashlytics();
+  } catch (e, stack) {
+    debugPrint('Startup error: $e');
+    debugPrint(stack.toString());
+    preferences = await SharedPreferences.getInstance();
+  }
   runApp(const MyApp());
 }
 

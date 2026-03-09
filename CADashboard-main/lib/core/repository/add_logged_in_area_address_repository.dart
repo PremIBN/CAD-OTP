@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:cadashboard/core/api_client/api_client.dart';
@@ -22,10 +21,17 @@ class AddLoggedInAreaAddressRepository extends ApiClient {
             isLogin: isLogin)));
 
     try {
-
-      Map<String, dynamic> response = jsonDecode(result);
-      int success = int.tryParse(response["Success"].toString()) ?? 0;
-      String message = response["Message"].toString();
+      if (result is String) {
+        failedResponse(0, result);
+        return false;
+      }
+      if (result is! Map) {
+        failedResponse(0, errorMessage);
+        return false;
+      }
+      final response = Map<String, dynamic>.from(result);
+      final success = int.tryParse(response["Success"]?.toString() ?? "0") ?? 0;
+      final message = response["Message"]?.toString() ?? errorMessage;
 
       if (success == 1) {
         successResponse(success, message, response);
@@ -34,7 +40,6 @@ class AddLoggedInAreaAddressRepository extends ApiClient {
         failedResponse(success, message);
         return false;
       }
-
     } catch (e) {
       log("AddLoggedInAreaAddressRepository Exception :---> $e");
       failedResponse(0, errorMessage);

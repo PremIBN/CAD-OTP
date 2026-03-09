@@ -18,7 +18,7 @@ class StatelessBaseView<T extends BaseModel> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _BaseViewState<T>();
+  State<StatelessBaseView<T>> createState() => _BaseViewState<T>();
 }
 
 class _BaseViewState<T extends BaseModel> extends State<StatelessBaseView<T>> {
@@ -26,8 +26,8 @@ class _BaseViewState<T extends BaseModel> extends State<StatelessBaseView<T>> {
 
   @override
   void initState() {
-    model = widget.model;
     super.initState();
+    model = widget.model;
     if (widget.onInitState != null) {
       widget.onInitState!(model);
     }

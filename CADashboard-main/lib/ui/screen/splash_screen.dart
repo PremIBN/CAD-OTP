@@ -21,6 +21,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   void initState() {
+    super.initState();
     controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
@@ -31,7 +32,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     scaleAnimation = CurvedAnimation(parent: controller, curve: Curves.easeInOut);
     controller.addListener(() => setState(() {}));
     controller.forward();
-    super.initState();
   }
 
   Future<bool> notificationPermission() async {

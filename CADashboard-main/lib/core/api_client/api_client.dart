@@ -64,6 +64,9 @@ class ApiClient{
     } on SocketException catch (e) {
       result = {"Success": 0, "Message": "No Internet Found"};
       appPrint(e);
+    } on Exception catch (e) {
+      result = {"Success": 0, "Message": e.toString().trim().isNotEmpty ? e.toString() : "Something went wrong"};
+      appPrint(e);
     } on Error catch (e) {
       result = {"Success": 0, "Message": "Something went wrong"};
       appPrint(e);
@@ -75,15 +78,28 @@ class ApiClient{
 
 
   /// With Token api
-  Future getMethod({required Uri url, Map<String, dynamic>? queryParam, Map<String, String>? header}) async {
+  /// [skipLocationCheck] when true, location check is bypassed (used for lightweight APIs
+  /// like notifications so the UI doesn't block on geo-fence validation).
+  Future getMethod({
+    required Uri url,
+    Map<String, dynamic>? queryParam,
+    Map<String, String>? header,
+    bool skipLocationCheck = false,
+  }) async {
 
-    final access = await requestLocationPermission();
+    if (!skipLocationCheck) {
+      final access = await requestLocationPermission();
 
-    if (!access) {
-      LocationDialogService.show(navigatorKey.currentContext!);
-      return {"Success": 0, "Message": "Login not allowed. You’re currently outside the allowed location. Please move closer to your assigned zone to proceed."};
+      if (!access) {
+        LocationDialogService.show(navigatorKey.currentContext!);
+        return {
+          "Success": 0,
+          "Message":
+              "Login not allowed. You’re currently outside the allowed location. Please move closer to your assigned zone to proceed."
+        };
+      }
+      LocationDialogService.hide();
     }
-    LocationDialogService.hide();
 
     var result;
     try {
@@ -108,46 +124,13 @@ class ApiClient{
     return result;
   }
 
-  Future postMethod({required Uri url, Map<String, String>? queryParam, Map<String, String>? header, Map<String, dynamic>? body}) async {
-
-    final access = await requestLocationPermission();
-
-    if (!access) {
-      LocationDialogService.show(navigatorKey.currentContext!);
-      return {"Success": 0, "Message": "Login not allowed. You’re currently outside the allowed location. Please move closer to your assigned zone to proceed."};
-    }
-    LocationDialogService.hide();
-
-    var result;
-
-    try{
-      var response = await http.post(
-          url.replace(queryParameters: queryParam),
-          headers: header,
-          body: body
-      );
-      result = await handleResponse(response);
-    } on TimeoutException catch (e) {
-      result = {"Success": 0, "Message": "Server Time out"};
-      appPrint(e);
-    } on SocketException catch (e) {
-      result = {"Success": 0, "Message": "No Internet Found"};
-      appPrint(e);
-    } on Error catch (e) {
-      result = {"Success": 0, "Message": "Something went wrong"};
-      appPrint(e);
-    }
-
-    return result;
-  }
-
   Future postRawMethod({required Uri url, Map<String, String>? queryParam, Map<String, String>? header, Map<String, dynamic>? body}) async {
 
     final access = await requestLocationPermission();
 
     if (!access) {
       LocationDialogService.show(navigatorKey.currentContext!);
-      return {"Success": 0, "Message": "Login not allowed. You’re currently outside the allowed location. Please move closer to your assigned zone to proceed."};
+      return {"Success": 0, "Message": "Login not allowed. You're currently outside the allowed location. Please move closer to your assigned zone to proceed."};
     }
     LocationDialogService.hide();
 
@@ -174,6 +157,64 @@ class ApiClient{
       appPrint(e);
     }
 
+    return result;
+  }
+
+Future postMethod({
+  required Uri url,
+  Map<String, String>? queryParam,
+  Map<String, String>? header,
+  Map<String, dynamic>? body,
+  bool skipLocationCheck = false,
+}) async {
+
+  if (!skipLocationCheck) {
+    final access = await requestLocationPermission();
+    if (!access) {
+      return {
+        "Success": 0,
+        "Message":
+          "Location permission required. Please enable location."
+      };
+    }
+  }
+
+  final response = await http.post(
+    url.replace(queryParameters: queryParam),
+    headers: header,
+    body: body,
+  );
+
+  return handleResponse(response);
+}
+
+  /// POST with single JSON object body (no array wrapper). For APIs that expect one object.
+  Future postJsonMethod({
+    required Uri url,
+    Map<String, String>? queryParam,
+    Map<String, String>? header,
+    Map<String, dynamic>? body,
+  }) async {
+    var result;
+    try {
+      final bodyStr = body != null ? jsonEncode(body) : null;
+      log('postJson Body :---> $bodyStr');
+      var response = await http.post(
+        url.replace(queryParameters: queryParam),
+        headers: {...?header, 'Content-Type': 'application/json'},
+        body: bodyStr,
+      );
+      result = await handleResponse(response);
+    } on TimeoutException catch (e) {
+      result = {"Success": 0, "Message": "Server Time out"};
+      appPrint(e);
+    } on SocketException catch (e) {
+      result = {"Success": 0, "Message": "No Internet Found"};
+      appPrint(e);
+    } on Error catch (e) {
+      result = {"Success": 0, "Message": "Something went wrong"};
+      appPrint(e);
+    }
     return result;
   }
 

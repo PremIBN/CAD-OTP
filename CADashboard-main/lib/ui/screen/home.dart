@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:cadashboard/core/View_Model/home_vm.dart';
+import 'package:cadashboard/core/repository/menu_repository.dart';
 import 'package:cadashboard/core/common/app_version_service.dart';
 import 'package:cadashboard/core/common/common_loader.dart';
 import 'package:cadashboard/core/common/empty_data.dart';
@@ -15,6 +16,7 @@ import 'package:cadashboard/ui/screen/account/account_receivable.dart';
 import 'package:cadashboard/ui/screen/change_password_screen.dart';
 import 'package:cadashboard/ui/screen/login_screen.dart';
 import 'package:cadashboard/ui/screen/notification_screen.dart';
+import 'package:cadashboard/ui/screen/document/document_screen.dart';
 import 'package:cadashboard/ui/screen/client/view_client.dart';
 import 'package:cadashboard/ui/screen/task/view_task.dart';
 import 'package:cadashboard/ui/screen/webview_screen.dart';
@@ -24,13 +26,17 @@ import 'package:cadashboard/ui/widget/greeting_widget.dart';
 import 'package:cadashboard/ui/widget/screen_loader.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../core/services/location_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  /// Optional tokenID from the latest login response.
+  /// When provided, Home will use this tokenID for initial menu fetch
+  /// instead of any previously stored token.
+  final String? tokenId;
+
+  const HomeScreen({super.key, this.tokenId});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -49,6 +55,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+    // If Home is opened right after login, use the freshly issued tokenID
+    // for the first menu/API calls instead of any older stored token.
+    homeVM.setSessionToken(widget.tokenId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       LocationService().startMonitoring(context);
     });
@@ -76,13 +85,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
-    if(Platform.isIOS){
+    if (Platform.isIOS) {
       if (!serviceEnabled) {
         isLoading.value = false;
-        locationDialog(
-          context: navigatorKey.currentContext!,
-          onTapGotIt: () => Navigator.pop(context),
-        );
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          locationDialog(
+            context: ctx,
+            onTapGotIt: () => Navigator.pop(ctx),
+          );
+        }
         return false;
       }
     }
@@ -105,7 +117,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     try {
       final position = await Geolocator.getCurrentPosition();
       isLoading.value = false;
-      homeVM.dialog(navigatorKey.currentContext!, 'Logout ?', 'Are you sure you want logout?', latitude: position.latitude.toString(),longitude: position.longitude.toString());
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null && ctx.mounted) {
+        homeVM.dialog(ctx, 'Logout ?', 'Are you sure you want logout?', latitude: position.latitude.toString(), longitude: position.longitude.toString());
+      }
     } catch (e) {
       isLoading.value = false;
     }
@@ -117,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext homeContext) {
     var size = MediaQuery.of(homeContext).size;
     return StatelessBaseView(
-      model: HomeVM(),
+      model: homeVM,
       onInitState: (p0) {
         p0.checkToken(homeContext);
       },
@@ -171,10 +186,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       if(value == ViewState.loading){
                         return CommonLoader();
                       } else if (value == ViewState.success) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: SingleChildScrollView(
-                            child: Column(
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            try {
+                              await model.refresh(buildContext);
+                            } catch (_) {
+                              // Error already shown by VM
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SizedBox(height: size.height * 0.02,),
@@ -199,52 +223,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   ),
                                 ),
                                 SizedBox(height: size.height * 0.01,),
-                                Row(
-                                  children: [
-                                    HomeGird(
-                                      name: "Task",
-                                      image: AppImages.task,
-                                      onTap: () {
-                                        Navigator.push(context, cusNavigate(const ViewTasks())).then((value) {
-                                          model.viewLoader.value = ViewState.loading;
-                                          model.updateUI();
-                                          model.checkToken(context);
-                                        });
-                                      }
-                                    ),
-                                    SizedBox(width: size.width * 0.02,),
-                                    HomeGird(
-                                      name: "Client",
-                                      icon: CupertinoIcons.person,
-                                      onTap: () {
-                                        Navigator.push(context, cusNavigate(const ViewClient())).then((value) {
-                                          model.viewLoader.value = ViewState.loading;
-                                          model.updateUI();
-                                          model.checkToken(context);
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: size.height * 0.01,),
-                                Row(
-                                  children: [
-                                    HomeGird(
-                                      name: "Account Receivable",
-                                      image: AppImages.AccountReceivable,
-                                      onTap: () {
-                                        Navigator.push(context, cusNavigate(const AccountReceivableScreen())).then((value) {
-                                          model.viewLoader.value = ViewState.loading;
-                                          model.updateUI();
-                                          model.checkToken(context);
-                                        });
-                                      }
-                                    ),
-                                  ],
+                                _HomeMenuGrid(
+                                  size: size,
+                                  menuItems: model.menuItems,
+                                  onNavigate: () {
+                                    model.viewLoader.value = ViewState.loading;
+                                    model.updateUI();
+                                    model.checkToken(context);
+                                  },
                                 ),
                               ],
                             ),
                           ),
+                        ),
                         );
                       } else {
                         return EmptyData(emptyData: model.errorMessage);
@@ -374,6 +365,153 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       },
     );
   }
+
+}
+
+/// Renders only menus returned by the menu API (called after login with tokenID).
+/// No hardcoded menus. "No Module Assigned" only when API returned empty or null (never before response).
+class _HomeMenuGrid extends StatelessWidget {
+  final Size size;
+  final List<MenuItem> menuItems;
+  final VoidCallback onNavigate;
+
+  const _HomeMenuGrid({
+    required this.size,
+    required this.menuItems,
+    required this.onNavigate,
+  });
+
+  /// Order: Task, Client, Account Receivable, Document, then others.
+  static List<MenuItem> _orderMenuItems(List<MenuItem> list) {
+    int orderOf(MenuItem m) {
+      final u = m.url.toLowerCase();
+      if (u.contains('task')) return 0;
+      if (u.contains('client') || u.contains('organisation') || u.contains('org')) return 1;
+      if (u.contains('account') || u.contains('receivable') || u.contains('ar')) return 2;
+      if (u.contains('document') || u.contains('doc')) return 3;
+      return 4;
+    }
+    final copy = List<MenuItem>.from(list);
+    copy.sort((a, b) => orderOf(a).compareTo(orderOf(b)));
+    return copy;
+  }
+
+  static bool _isFullWidthItem(MenuItem m) {
+    final u = m.url.toLowerCase();
+    return u.contains('account') || u.contains('receivable') || u.contains('ar') ||
+        u.contains('document') || u.contains('doc');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (menuItems.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: Text(
+            'No Module Assigned',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    final items = _orderMenuItems(menuItems);
+    final rows = <Widget>[];
+    var i = 0;
+    while (i < items.length) {
+      final item = items[i];
+      if (_isFullWidthItem(item)) {
+        rows.add(Row(
+          children: [
+            Expanded(child: _menuTile(context, item, onNavigate)),
+          ],
+        ));
+        i += 1;
+      } else {
+        final rowItems = <MenuItem>[item];
+        if (i + 1 < items.length && !_isFullWidthItem(items[i + 1])) {
+          rowItems.add(items[i + 1]);
+          i += 2;
+        } else {
+          i += 1;
+        }
+        final rowChildren = <Widget>[];
+        for (var j = 0; j < rowItems.length; j++) {
+          if (j > 0) rowChildren.add(SizedBox(width: size.width * 0.02));
+          // _menuTile already returns a widget with its own layout (HomeGird),
+          // which wraps its content in Expanded. Do not wrap it again or
+          // you'll get nested Expanded/ParentDataWidget errors.
+          rowChildren.add(_menuTile(context, rowItems[j], onNavigate));
+        }
+        rows.add(Row(children: rowChildren));
+      }
+      if (i < items.length) {
+        rows.add(SizedBox(height: size.height * 0.01));
+      }
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: rows,
+    );
+  }
+
+  Widget _menuTile(BuildContext context, MenuItem item, VoidCallback onNavigate) {
+    final url = item.url.toLowerCase();
+    final name = item.name;
+
+    if (url.contains('task')) {
+      return HomeGird(
+        name: name,
+        image: AppImages.task,
+        onTap: () {
+          Navigator.push(context, cusNavigate(const ViewTasks())).then((_) {
+            onNavigate();
+          });
+        },
+      );
+    }
+    if (url.contains('client') || url.contains('organisation') || url.contains('org')) {
+      return HomeGird(
+        name: name,
+        icon: CupertinoIcons.person,
+        onTap: () {
+          Navigator.push(context, cusNavigate(const ViewClient())).then((_) {
+            onNavigate();
+          });
+        },
+      );
+    }
+    if (url.contains('account') || url.contains('receivable') || url.contains('ar')) {
+      return HomeGird(
+        name: name,
+        image: AppImages.AccountReceivable,
+        onTap: () {
+          Navigator.push(context, cusNavigate(const AccountReceivableScreen())).then((_) {
+            onNavigate();
+          });
+        },
+      );
+    }
+    if (url.contains('document') || url.contains('doc')) {
+      return HomeGird(
+        name: name,
+        image: AppImages.document,
+        onTap: () {
+          Navigator.push(context, cusNavigate(const DocumentScreen()));
+        },
+      );
+    }
+    return HomeGird(
+      name: name,
+      icon: Icons.dashboard,
+      onTap: () {
+        if (item.url.startsWith('http')) {
+          Navigator.push(context, cusNavigate(WebviewScreen(title: name, url: item.url)));
+        }
+      },
+    );
+  }
 }
 
 locationDialog({
@@ -445,9 +583,26 @@ Widget HomeGird({VoidCallback? onTap, IconData? icon, String? image, required St
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  (icon != null) ? Icon(icon,color: AppColor.background) : Image.asset(image!,width: 25,color: AppColor.background,),
-                  const SizedBox(width: 10),
-                  Text(name,style: const TextStyle(fontSize: 22,color: AppColor.background)),
+                  (icon != null)
+                      ? Icon(icon, color: AppColor.background)
+                      : Image.asset(
+                          image!,
+                          width: 25,
+                          color: AppColor.background,
+                        ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: AppColor.background,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
                 ],
               ),
             ],

@@ -10,10 +10,10 @@ class CheckTokenRepo extends ApiClient{
     required Function (bool success, String message, int statusCode) failedResponse }) async {
 
     var result = await withOutTokenGetMethod(
-        url: Uri.parse(Urls.ValidateToken),
-        queryParam: {
-          'tokenID' : token,
-        }
+      url: Uri.parse(Urls.ValidateToken),
+      queryParam: {
+        'tokenID': token,
+      },
     );
 
     try{
@@ -29,3 +29,5 @@ class CheckTokenRepo extends ApiClient{
   }
 
 }
+
+
