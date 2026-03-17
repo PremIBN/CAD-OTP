@@ -65,9 +65,10 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>To protect your account, we verify your location during login. This prevents unauthorized access. Your location is not used afterward.</string>
     <key>NSAppTransportSecurity</key>
-	<string>Defines your app network security rules.</string>
+<dict>
     <key>NSAllowsArbitraryLoads</key>
-	<string>Allows all HTTP (insecure) connections by disabling ATS restrictions.</string>
+    <true/>
+</dict>
 
 </dict>
 </plist>
