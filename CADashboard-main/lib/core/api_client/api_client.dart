@@ -18,6 +18,7 @@ class ApiClient{
 
   String errorMessage = 'Something went Wrong';
   static const Duration _defaultTimeout = Duration(seconds: 30);
+  static const Duration _geoTimeout = Duration(seconds: 20);
 
 
   /// With out token api
@@ -188,15 +189,28 @@ Future postMethod({
     }
   }
 
-  final response = await http
-      .post(
-        url.replace(queryParameters: queryParam),
-        headers: header,
-        body: body,
-      )
-      .timeout(_defaultTimeout);
-
-  return handleResponse(response);
+  try {
+    final response = await http
+        .post(
+          url.replace(queryParameters: queryParam),
+          headers: header,
+          body: body,
+        )
+        .timeout(_defaultTimeout);
+    return handleResponse(response);
+  } on TimeoutException catch (e) {
+    appPrint(e);
+    return {"Success": 0, "Message": "Server Time out"};
+  } on SocketException catch (e) {
+    appPrint(e);
+    return {"Success": 0, "Message": "No Internet Found"};
+  } on Exception catch (e) {
+    appPrint(e);
+    return {"Success": 0, "Message": e.toString().trim().isNotEmpty ? e.toString() : "Something went wrong"};
+  } on Error catch (e) {
+    appPrint(e);
+    return {"Success": 0, "Message": "Something went wrong"};
+  }
 }
 
   /// POST with single JSON object body (no array wrapper). For APIs that expect one object.
@@ -241,10 +255,13 @@ Future postMethod({
 
     if(Platform.isIOS){
       if (!serviceEnabled) {
-        locationDialog(
-          context: navigatorKey.currentContext!,
-          onTapGotIt: () => Navigator.pop(navigatorKey.currentContext!),
-        );
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          locationDialog(
+            context: ctx,
+            onTapGotIt: () => Navigator.pop(ctx),
+          );
+        }
         return false;
       }
     }
@@ -262,15 +279,29 @@ Future postMethod({
     }
 
     try {
-      final position = await Geolocator.getCurrentPosition();
+      final position = await Geolocator.getCurrentPosition().timeout(_geoTimeout);
       return await checkLocation(
         latitude: position.latitude.toString(),
         longitude: position.longitude.toString(),
         token: token,
         loginDetailID: loginDetailID
       );
+    } on TimeoutException catch (e) {
+      appPrint(e);
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null && ctx.mounted) {
+        CommonFunction.showSnackBar(
+          context: ctx,
+          isError: true,
+          message: 'Unable to get location. Please enable GPS and try again.',
+        );
+      }
+      return false;
     } catch (e) {
-      CommonFunction.showSnackBar(context: navigatorKey.currentContext!, isError: true, message: e.toString());
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null && ctx.mounted) {
+        CommonFunction.showSnackBar(context: ctx, isError: true, message: e.toString());
+      }
       return false;
     }
   }
