@@ -42,16 +42,29 @@ class LoginVM extends BaseModel {
   DeviceInfoPlugin device = DeviceInfoPlugin();
   NetworkInfo network = NetworkInfo();
 
+  static const Duration _loginBootstrapTimeout = Duration(seconds: 15);
+
   Future<void> login(BuildContext context, String username, String password, String latitude, String longitude) async {
 
-    await notification();
+    try {
+      await notification().timeout(_loginBootstrapTimeout);
+    } catch (e, st) {
+      log('LoginVM: notification bootstrap failed: $e');
+      log('LoginVM: notification bootstrap stack: $st');
+    }
     SharedPreferences preferences = await SharedPreferences.getInstance();
 
     log(name: "Login Token", "${preferences.getString(PreferenceHelper.fcmToken)}");
 
     if (Platform.isAndroid) {
 
-      String ipv4 = await Ipify.ipv4();
+      String ipv4 = '0.0.0.0';
+      try {
+        ipv4 = await Ipify.ipv4().timeout(_loginBootstrapTimeout);
+      } catch (e, st) {
+        log('LoginVM: Ipify ipv4 failed (Android): $e');
+        log('LoginVM: Ipify ipv4 stack (Android): $st');
+      }
 
       AndroidDeviceInfo android = await device.androidInfo;
 
@@ -107,7 +120,13 @@ class LoginVM extends BaseModel {
     } else if (Platform.isIOS) {
       IosDeviceInfo ios = await device.iosInfo;
 
-      String ipv4 = await Ipify.ipv4();
+      String ipv4 = '0.0.0.0';
+      try {
+        ipv4 = await Ipify.ipv4().timeout(_loginBootstrapTimeout);
+      } catch (e, st) {
+        log('LoginVM: Ipify ipv4 failed (iOS): $e');
+        log('LoginVM: Ipify ipv4 stack (iOS): $st');
+      }
       loginRepository.authenticateUser(
         username: username,
         password: password,

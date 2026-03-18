@@ -17,6 +17,7 @@ import '../utils/preference_helper.dart';
 class ApiClient{
 
   String errorMessage = 'Something went Wrong';
+  static const Duration _defaultTimeout = Duration(seconds: 30);
 
 
   /// With out token api
@@ -29,7 +30,9 @@ class ApiClient{
 
       log('---->Urls : $urls');
 
-      var response = await http.get(Uri.parse(urls), headers: header);
+      var response = await http
+          .get(Uri.parse(urls), headers: header)
+          .timeout(_defaultTimeout);
 
       result = await handleResponse(response);
     } on TimeoutException catch (e) {
@@ -52,11 +55,13 @@ class ApiClient{
     try{
       log('---->Urls : ${url.replace(queryParameters: queryParam)}');
 
-      var response = await http.post(
-          url.replace(queryParameters: queryParam),
-          headers: header,
-          body: body
-      );
+      var response = await http
+          .post(
+            url.replace(queryParameters: queryParam),
+            headers: header,
+            body: body,
+          )
+          .timeout(_defaultTimeout);
       result = await handleResponse(response);
     } on TimeoutException catch (e) {
       result = {"Success": 0, "Message": "Server Time out"};
@@ -107,7 +112,9 @@ class ApiClient{
 
       log('---->Urls : $urls');
 
-      var response = await http.get(Uri.parse(urls), headers: header);
+      var response = await http
+          .get(Uri.parse(urls), headers: header)
+          .timeout(_defaultTimeout);
 
       result = await handleResponse(response);
     } on TimeoutException catch (e) {
@@ -140,11 +147,13 @@ class ApiClient{
     log('RAW Body :---> [$b]');
 
     try{
-      var response = await http.post(
-        url.replace(queryParameters: queryParam),
-        headers: header,
-        body: "[$b]",
-      );
+      var response = await http
+          .post(
+            url.replace(queryParameters: queryParam),
+            headers: header,
+            body: "[$b]",
+          )
+          .timeout(_defaultTimeout);
       result = await handleResponse(response);
     } on TimeoutException catch (e) {
       result = {"Success": 0, "Message": "Server Time out"};
@@ -179,11 +188,13 @@ Future postMethod({
     }
   }
 
-  final response = await http.post(
-    url.replace(queryParameters: queryParam),
-    headers: header,
-    body: body,
-  );
+  final response = await http
+      .post(
+        url.replace(queryParameters: queryParam),
+        headers: header,
+        body: body,
+      )
+      .timeout(_defaultTimeout);
 
   return handleResponse(response);
 }
@@ -199,11 +210,13 @@ Future postMethod({
     try {
       final bodyStr = body != null ? jsonEncode(body) : null;
       log('postJson Body :---> $bodyStr');
-      var response = await http.post(
-        url.replace(queryParameters: queryParam),
-        headers: {...?header, 'Content-Type': 'application/json'},
-        body: bodyStr,
-      );
+      var response = await http
+          .post(
+            url.replace(queryParameters: queryParam),
+            headers: {...?header, 'Content-Type': 'application/json'},
+            body: bodyStr,
+          )
+          .timeout(_defaultTimeout);
       result = await handleResponse(response);
     } on TimeoutException catch (e) {
       result = {"Success": 0, "Message": "Server Time out"};
@@ -271,7 +284,9 @@ Future postMethod({
 
       log('---->Urls : $urls');
 
-      var response = await http.get(Uri.parse(urls), headers: header);
+      var response = await http
+          .get(Uri.parse(urls), headers: header)
+          .timeout(_defaultTimeout);
 
       result = await handleResponse(response);
     } on TimeoutException catch (e) {

@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final formKey = GlobalKey<FormState>();
   final forgotFormKey = GlobalKey<FormState>();
+  static const Duration _locationTimeout = Duration(seconds: 20);
 
   @override
   void initState() {
@@ -69,7 +70,21 @@ class _LoginScreenState extends State<LoginScreen> {
             return false ;
           }
 
-          final position = await Geolocator.getCurrentPosition();
+          Position position;
+          try {
+            position = await Geolocator.getCurrentPosition()
+                .timeout(_locationTimeout);
+          } catch (e) {
+            model.buttonLoader.value = false;
+            if (buildContext.mounted) {
+              CommonFunction.showSnackBar(
+                context: buildContext,
+                isError: true,
+                message: "Unable to get location. Please enable GPS and try again.",
+              );
+            }
+            return false;
+          }
           if (!buildContext.mounted) return false;
           model.login(buildContext, model.usernameController.text, model.passwordController.text,
             position.latitude.toString(), position.longitude.toString()).then((value) {
