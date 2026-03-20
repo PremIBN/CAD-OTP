@@ -27,6 +27,10 @@ File: `lib/core/api_client/api_client.dart`
   - return `false` so the API call fails fast instead of hanging
 - Also guarded `navigatorKey.currentContext` usage so iOS dialogs/snackbars don’t crash when context is null/unmounted.
 
+### Extra improvement (reduce false “outside geofence”)
+
+- Updated iOS GPS retrieval to request a higher-accuracy fix when validating the geo-fence (reduces cases where iOS returns imprecise coordinates).
+
 ## What to verify on the iPhone
 
 - iOS Settings → **Privacy & Security** → **Location Services** → ON

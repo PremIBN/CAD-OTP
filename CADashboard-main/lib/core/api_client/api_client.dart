@@ -279,7 +279,10 @@ Future postMethod({
     }
 
     try {
-      final position = await Geolocator.getCurrentPosition().timeout(_geoTimeout);
+      // Request a higher-accuracy GPS fix on iOS to reduce false "outside geofence" results.
+      final position = await Geolocator
+          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+          .timeout(_geoTimeout);
       return await checkLocation(
         latitude: position.latitude.toString(),
         longitude: position.longitude.toString(),

@@ -26,6 +26,7 @@ We added back **timeouts + user-facing error handling** so the loader can stop a
 
 - Adds `static const Duration _locationTimeout = Duration(seconds: 20);`
 - Wraps `Geolocator.getCurrentPosition()` with `.timeout(_locationTimeout)`
+- Requests a higher-accuracy GPS fix (`desiredAccuracy: LocationAccuracy.high`) to reduce false geo-fence failures
 - On error/timeout:
   - sets `model.buttonLoader.value = false`
   - shows Snackbar: `"Unable to get location. Please enable GPS and try again."`

@@ -73,7 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
           Position position;
           try {
-            position = await Geolocator.getCurrentPosition().timeout(_locationTimeout);
+            position = await Geolocator
+                .getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+                .timeout(_locationTimeout);
           } catch (e) {
             model.buttonLoader.value = false;
             if (buildContext.mounted) {
