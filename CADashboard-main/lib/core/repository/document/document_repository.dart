@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io' show File;
+import 'dart:io' show File, Platform;
 import 'dart:typed_data';
 
 import 'package:cadashboard/core/api_client/api_client.dart';
@@ -53,7 +53,11 @@ class DocumentRepository extends ApiClient {
       financialYearID: financialYearID,
     );
 
-    final result = await getMethod(url: Uri.parse(url));
+    // iOS Documents menu: skip geo-fence validation for folder browsing/viewing.
+    final result = await getMethod(
+      url: Uri.parse(url),
+      skipLocationCheck: Platform.isIOS,
+    );
 
     try {
       if (result is Map) {
@@ -134,7 +138,11 @@ class DocumentRepository extends ApiClient {
       financialYearID: financialYearID,
     );
     try {
-      final result = await getMethod(url: Uri.parse(url));
+      // iOS Documents menu: skip geo-fence validation for folder browsing/viewing.
+      final result = await getMethod(
+        url: Uri.parse(url),
+        skipLocationCheck: Platform.isIOS,
+      );
       if (result is Map) {
         final successFlag = result['Success'];
         final message = result['Message']?.toString() ?? '';
@@ -177,7 +185,11 @@ class DocumentRepository extends ApiClient {
     final tokenID = pre.getString(PreferenceHelper.userToken) ?? '';
     final url = Urls.getDocumentURL(tokenID: tokenID, id: documentId);
 
-    final result = await getMethod(url: Uri.parse(url));
+    // iOS Documents menu: skip geo-fence validation for viewing (URL resolution).
+    final result = await getMethod(
+      url: Uri.parse(url),
+      skipLocationCheck: Platform.isIOS,
+    );
 
     try {
       if (result is Map && result['Success'] == 0) {
