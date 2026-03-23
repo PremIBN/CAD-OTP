@@ -337,30 +337,50 @@ Future postMethod({
     return result;
   }
 
-  /// [IsLocationWithinGeofence] returns JSON (e.g. `Success` / `Data` / `IsLocationWithinGeofence`), not a bare `true`.
+  static bool _toBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value == 1;
+    if (value is String) {
+      final v = value.trim().toLowerCase();
+      return v == '1' || v == 'true' || v == 'yes';
+    }
+    return false;
+  }
+
+  /// Accepts bool/map/list and common nested API response shapes.
   static bool _geofenceResponseAllows(dynamic result) {
-    if (result == true) return true;
-    if (result == false) return false;
+    if (result is bool || result is num || result is String) {
+      return _toBool(result);
+    }
+
+    if (result is List) {
+      if (result.isEmpty) return false;
+      for (final item in result) {
+        if (_geofenceResponseAllows(item)) return true;
+      }
+      return false;
+    }
+
     if (result is! Map) return false;
     final m = Map<String, dynamic>.from(result);
-    final within = m['IsLocationWithinGeofence'];
-    if (within != null) {
-      if (within is bool) return within;
-      if (within == 1 || within == '1') return true;
-      if (within == 0 || within == '0' || within == false) return false;
+
+    final directWithin = m['IsLocationWithinGeofence'] ??
+        m['isLocationWithinGeofence'] ??
+        m['withinGeofence'] ??
+        m['WithinGeofence'];
+    if (directWithin != null) return _toBool(directWithin);
+
+    final data = m['Data'] ?? m['data'] ?? m['Result'] ?? m['result'];
+    if (data != null) {
+      if (_geofenceResponseAllows(data)) return true;
+      if (data is num || data is String || data is bool) {
+        return _toBool(data);
+      }
     }
-    final success = m['Success'] ?? m['success'];
-    final successOk =
-        success == true || success == 1 || success == '1';
-    if (successOk) {
-      final data = m['Data'] ?? m['data'];
-      if (data is bool) return data;
-      if (data == 0 || data == '0' || data == false) return false;
-      return true;
-    }
-    final dataOnly = m['Data'] ?? m['data'];
-    if (dataOnly is bool) return dataOnly;
-    if (dataOnly == 1 || dataOnly == '1') return true;
+
+    final success = m['Success'] ?? m['success'] ?? m['Status'] ?? m['status'];
+    if (success != null) return _toBool(success);
+
     return false;
   }
 
