@@ -337,6 +337,33 @@ Future postMethod({
     return result;
   }
 
+  /// [IsLocationWithinGeofence] returns JSON (e.g. `Success` / `Data` / `IsLocationWithinGeofence`), not a bare `true`.
+  static bool _geofenceResponseAllows(dynamic result) {
+    if (result == true) return true;
+    if (result == false) return false;
+    if (result is! Map) return false;
+    final m = Map<String, dynamic>.from(result);
+    final within = m['IsLocationWithinGeofence'];
+    if (within != null) {
+      if (within is bool) return within;
+      if (within == 1 || within == '1') return true;
+      if (within == 0 || within == '0' || within == false) return false;
+    }
+    final success = m['Success'] ?? m['success'];
+    final successOk =
+        success == true || success == 1 || success == '1';
+    if (successOk) {
+      final data = m['Data'] ?? m['data'];
+      if (data is bool) return data;
+      if (data == 0 || data == '0' || data == false) return false;
+      return true;
+    }
+    final dataOnly = m['Data'] ?? m['data'];
+    if (dataOnly is bool) return dataOnly;
+    if (dataOnly == 1 || dataOnly == '1') return true;
+    return false;
+  }
+
   Future<bool> checkLocation({required String latitude, required String longitude, String? loginDetailID, String? token}) async {
 
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -352,16 +379,9 @@ Future postMethod({
     );
 
     try {
-      if(result == true){
-        // onResponse(true, "Location Access");
-        return true;
-      } else {
-        // onResponse(false, "You are not able to access this app in this location.");
-        return false;
-      }
+      return _geofenceResponseAllows(result);
     } catch (e) {
       appPrint("LocationRepo Exception :--> $e");
-      // onResponse(false, errorMessage);
       return false;
     }
 
