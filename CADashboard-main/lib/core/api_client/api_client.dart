@@ -19,6 +19,9 @@ class ApiClient{
   String errorMessage = 'Something went Wrong';
   static const Duration _defaultTimeout = Duration(seconds: 30);
   static const Duration _geoTimeout = Duration(seconds: 20);
+  static const String _locationFetchErrorMessage =
+      'Unable to get location. Please enable GPS and try again.';
+  static String? _lastLocationFailureMessage;
 
 
   /// With out token api
@@ -97,10 +100,12 @@ class ApiClient{
       final access = await requestLocationPermission();
 
       if (!access) {
-        LocationDialogService.show(navigatorKey.currentContext!);
+        if (_lastLocationFailureMessage == null) {
+          LocationDialogService.show(navigatorKey.currentContext!);
+        }
         return {
           "Success": 0,
-          "Message":
+          "Message": _lastLocationFailureMessage ??
               "Login not allowed. You’re currently outside the allowed location. Please move closer to your assigned zone to proceed."
         };
       }
@@ -137,8 +142,14 @@ class ApiClient{
     final access = await requestLocationPermission();
 
     if (!access) {
-      LocationDialogService.show(navigatorKey.currentContext!);
-      return {"Success": 0, "Message": "Login not allowed. You're currently outside the allowed location. Please move closer to your assigned zone to proceed."};
+      if (_lastLocationFailureMessage == null) {
+        LocationDialogService.show(navigatorKey.currentContext!);
+      }
+      return {
+        "Success": 0,
+        "Message": _lastLocationFailureMessage ??
+            "Login not allowed. You're currently outside the allowed location. Please move closer to your assigned zone to proceed."
+      };
     }
     LocationDialogService.hide();
 
@@ -253,54 +264,77 @@ Future postMethod({
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
-    if(Platform.isIOS){
-      if (!serviceEnabled) {
-        final ctx = navigatorKey.currentContext;
-        if (ctx != null && ctx.mounted) {
-          locationDialog(
-            context: ctx,
-            onTapGotIt: () => Navigator.pop(ctx),
-          );
-        }
-        return false;
-      }
+    if (!serviceEnabled) {
+      _lastLocationFailureMessage = _locationFetchErrorMessage;
+      return false;
     }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
+        _lastLocationFailureMessage = _locationFetchErrorMessage;
         return false;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
+      _lastLocationFailureMessage = _locationFetchErrorMessage;
       return false;
     }
 
     try {
-      // Request a higher-accuracy GPS fix on iOS to reduce false "outside geofence" results.
-      final position = await Geolocator
-          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
-          .timeout(_geoTimeout);
-      return await checkLocation(
+      Position? position;
+
+      try {
+        // First attempt: fresh GPS fix.
+        position = await Geolocator
+            .getCurrentPosition(
+              locationSettings: const LocationSettings(
+                accuracy: LocationAccuracy.high,
+              ),
+            )
+            .timeout(_geoTimeout);
+      } catch (_) {
+        // Fallback: use cached location if available (avoids false failures when GPS fix is slow).
+        position = await Geolocator.getLastKnownPosition();
+      }
+
+      if (position == null) {
+        _lastLocationFailureMessage = _locationFetchErrorMessage;
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          CommonFunction.showSnackBar(
+            context: ctx,
+            isError: true,
+            message: _locationFetchErrorMessage,
+          );
+        }
+        return false;
+      }
+
+      final allowed = await checkLocation(
         latitude: position.latitude.toString(),
         longitude: position.longitude.toString(),
         token: token,
         loginDetailID: loginDetailID
       );
+      _lastLocationFailureMessage = null;
+      return allowed;
     } on TimeoutException catch (e) {
       appPrint(e);
+      _lastLocationFailureMessage = _locationFetchErrorMessage;
       final ctx = navigatorKey.currentContext;
       if (ctx != null && ctx.mounted) {
         CommonFunction.showSnackBar(
           context: ctx,
           isError: true,
-          message: 'Unable to get location. Please enable GPS and try again.',
+          message: _locationFetchErrorMessage,
         );
       }
       return false;
     } catch (e) {
+      _lastLocationFailureMessage = _locationFetchErrorMessage;
       final ctx = navigatorKey.currentContext;
       if (ctx != null && ctx.mounted) {
         CommonFunction.showSnackBar(context: ctx, isError: true, message: e.toString());
@@ -337,50 +371,30 @@ Future postMethod({
     return result;
   }
 
-  static bool _toBool(dynamic value) {
-    if (value is bool) return value;
-    if (value is num) return value == 1;
-    if (value is String) {
-      final v = value.trim().toLowerCase();
-      return v == '1' || v == 'true' || v == 'yes';
-    }
-    return false;
-  }
-
-  /// Accepts bool/map/list and common nested API response shapes.
+  /// [IsLocationWithinGeofence] returns JSON (e.g. `Success` / `Data` / `IsLocationWithinGeofence`), not a bare `true`.
   static bool _geofenceResponseAllows(dynamic result) {
-    if (result is bool || result is num || result is String) {
-      return _toBool(result);
-    }
-
-    if (result is List) {
-      if (result.isEmpty) return false;
-      for (final item in result) {
-        if (_geofenceResponseAllows(item)) return true;
-      }
-      return false;
-    }
-
+    if (result == true) return true;
+    if (result == false) return false;
     if (result is! Map) return false;
     final m = Map<String, dynamic>.from(result);
-
-    final directWithin = m['IsLocationWithinGeofence'] ??
-        m['isLocationWithinGeofence'] ??
-        m['withinGeofence'] ??
-        m['WithinGeofence'];
-    if (directWithin != null) return _toBool(directWithin);
-
-    final data = m['Data'] ?? m['data'] ?? m['Result'] ?? m['result'];
-    if (data != null) {
-      if (_geofenceResponseAllows(data)) return true;
-      if (data is num || data is String || data is bool) {
-        return _toBool(data);
-      }
+    final within = m['IsLocationWithinGeofence'];
+    if (within != null) {
+      if (within is bool) return within;
+      if (within == 1 || within == '1') return true;
+      if (within == 0 || within == '0' || within == false) return false;
     }
-
-    final success = m['Success'] ?? m['success'] ?? m['Status'] ?? m['status'];
-    if (success != null) return _toBool(success);
-
+    final success = m['Success'] ?? m['success'];
+    final successOk =
+        success == true || success == 1 || success == '1';
+    if (successOk) {
+      final data = m['Data'] ?? m['data'];
+      if (data is bool) return data;
+      if (data == 0 || data == '0' || data == false) return false;
+      return true;
+    }
+    final dataOnly = m['Data'] ?? m['data'];
+    if (dataOnly is bool) return dataOnly;
+    if (dataOnly == 1 || dataOnly == '1') return true;
     return false;
   }
 
