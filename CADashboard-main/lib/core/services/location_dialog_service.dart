@@ -1,7 +1,7 @@
 import 'package:cadashboard/core/utils/images.dart';
+import 'package:cadashboard/ui/screen/login_screen.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../main.dart';
@@ -60,7 +60,15 @@ class LocationDialogService {
                         CusBtn(
                           btnName: "Close",
                           onTap: () {
-                            SystemNavigator.pop(animated: true);
+                            hide();
+                            final nav = navigatorKey.currentState;
+                            final ctx = navigatorKey.currentContext;
+                            if (nav != null && ctx != null && ctx.mounted) {
+                              nav.pushAndRemoveUntil(
+                                cusNavigate(const LoginScreen()),
+                                (route) => false,
+                              );
+                            }
                           },
                         )
                       ],
