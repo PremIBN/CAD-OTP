@@ -63,9 +63,9 @@ class LocationService {
                         Lottie.asset(AppImages.locationAnimation, height: 150),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 50),
-                          child: Text(
-                            "Oops! Location is turned off. Please enable it to use the app smoothly.
-                            Setting -> Privacy & Security -> Location Services -> ON",
+                          child: const Text(
+                            "Oops! Location is turned off. Please enable it to use the app smoothly.\n"
+                            "Setting -> Privacy & Security -> Location Services -> ON",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
