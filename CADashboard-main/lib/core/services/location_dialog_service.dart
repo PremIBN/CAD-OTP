@@ -21,6 +21,22 @@ class LocationDialogService {
   static late OverlayEntry _overlayEntry;
   static bool _isVisible = false;
 
+  static Future<void> _openLocationOrPermissionSettings() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    final permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      await Geolocator.openAppSettings();
+      return;
+    }
+
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return;
+    }
+  }
+
   static void show(BuildContext context) {
     if (_isVisible) return;
 
@@ -60,7 +76,10 @@ class LocationDialogService {
                         CusBtn(
                           btnName: "Turn on",
                           onTap: () async {
-                            await Geolocator.openAppSettings();
+                            // Close the overlay before navigating to settings so it
+                            // doesn't remain visible when user returns to the app.
+                            hide();
+                            await _openLocationOrPermissionSettings();
                           },
                         )
                       ],
