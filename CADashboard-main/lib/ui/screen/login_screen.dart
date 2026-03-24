@@ -12,7 +12,6 @@ import 'package:cadashboard/ui/widget/custom_textfield.dart';
 import 'package:cadashboard/ui/screen/forgot_password.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:upgrader/upgrader.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,25 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return StatelessBaseView(
       model: LoginVM(),
       builder: (buildContext, model, child) {
-
-        Future<bool> requestMicrophonePermission() async {
-          final status = await Permission.microphone.request();
-          if (status.isGranted) return true;
-
-          if (status.isPermanentlyDenied) {
-            await openAppSettings();
-          }
-
-          if (buildContext.mounted) {
-            CommonFunction.showSnackBar(
-              context: buildContext,
-              isError: true,
-              message: "Microphone permission is required.",
-            );
-          }
-          model.buttonLoader.value = false;
-          return false;
-        }
 
         requestLocationPermission() async {
           LocationPermission permission;
@@ -200,12 +180,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             onTap: () async {
                               if (formKey.currentState!.validate()) {
                                 model.buttonLoader.value = true;
-                                try {
-                                  // Ensure notification prompt is shown before location prompt on login.
-                                  await requestNotificationPermission();
-                                } catch (_) {}
-                                final micGranted = await requestMicrophonePermission();
-                                if (!micGranted) return;
                                 await requestLocationPermission();
                               }
                             },

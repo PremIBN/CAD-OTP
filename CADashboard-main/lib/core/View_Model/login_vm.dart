@@ -13,6 +13,7 @@ import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:flutter/material.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:io' show Platform;
@@ -44,14 +45,34 @@ class LoginVM extends BaseModel {
 
   static const Duration _loginBootstrapTimeout = Duration(seconds: 15);
 
-  Future<void> login(BuildContext context, String username, String password, String latitude, String longitude) async {
+  Future<void> _requestMicrophonePermissionAfterLogin(BuildContext context) async {
+    final status = await Permission.microphone.request();
+    if (status.isGranted) return;
 
-    try {
-      await notification().timeout(_loginBootstrapTimeout);
-    } catch (e, st) {
-      log('LoginVM: notification bootstrap failed: $e');
-      log('LoginVM: notification bootstrap stack: $st');
+    if (status.isPermanentlyDenied) {
+      await openAppSettings();
     }
+
+    if (context.mounted) {
+      CommonFunction.showSnackBar(
+        context: context,
+        isError: true,
+        message: "Microphone permission is required.",
+      );
+    }
+  }
+
+  Future<void> _requestPostLoginPermissions(BuildContext context) async {
+    try {
+      await requestNotificationPermission().timeout(_loginBootstrapTimeout);
+    } catch (e, st) {
+      log('LoginVM: notification permission request failed: $e');
+      log('LoginVM: notification permission stack: $st');
+    }
+    await _requestMicrophonePermissionAfterLogin(context);
+  }
+
+  Future<void> login(BuildContext context, String username, String password, String latitude, String longitude) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
 
     log(name: "Login Token", "${preferences.getString(PreferenceHelper.fcmToken)}");
@@ -104,6 +125,7 @@ class LoginVM extends BaseModel {
             );
             // Pass the freshly issued tokenID into HomeScreen so it uses
             // this token for initial menu loading instead of any older stored token.
+            await _requestPostLoginPermissions(context);
             Navigator.pushAndRemoveUntil(
               context,
               cusNavigate(HomeScreen(tokenId: response.tokenId)),
@@ -161,6 +183,7 @@ class LoginVM extends BaseModel {
                 debugPrint("AfterLoginApi LoginVM Failed -> :: $success :: $message");
               },
             );
+            await _requestPostLoginPermissions(context);
             Navigator.pushAndRemoveUntil(
               context,
               cusNavigate(HomeScreen(tokenId: response.tokenId)),

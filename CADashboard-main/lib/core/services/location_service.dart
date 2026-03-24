@@ -47,7 +47,7 @@ class LocationService {
             child: Material(
               borderRadius: BorderRadius.all(Radius.circular(10)),
               child: SizedBox(
-                height: 400,
+                height: 430,
                 width: 300,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
@@ -55,21 +55,24 @@ class LocationService {
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Lottie.asset(AppImages.locationAnimation, height: 165),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 50),
-                          child: const Text(
-                            "Oops! Location is turned off. Please enable it to use the app smoothly.\n"
-                            "Setting -> Privacy & Security -> Location Services -> ON",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
+                        Column(
+                          children: [
+                            Lottie.asset(AppImages.locationAnimation, height: 150),
+                            const SizedBox(height: 12),
+                            const Text(
+                              "Oops! Location is turned off. Please enable it to use the app smoothly.\n"
+                              "Setting -> Privacy & Security -> Location Services -> ON",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
                             Expanded(
@@ -81,6 +84,7 @@ class LocationService {
                                 },
                               ),
                             ),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: CusBtn(
                                 btnName: "Turn on",
