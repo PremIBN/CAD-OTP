@@ -1,8 +1,13 @@
+import 'package:cadashboard/core/repository/logout_repository.dart';
 import 'package:cadashboard/core/utils/images.dart';
+import 'package:cadashboard/core/utils/preference_helper.dart';
+import 'package:cadashboard/ui/screen/login_screen.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
+import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
 
@@ -59,9 +64,7 @@ class LocationDialogService {
                         ),
                         CusBtn(
                           btnName: "Close",
-                          onTap: () {
-                            SystemNavigator.pop(animated: true);
-                          },
+                          onTap: () => _onCloseTapped(),
                         )
                       ],
                     ),
@@ -88,5 +91,55 @@ class LocationDialogService {
     if (!_isVisible) return;
     _overlayEntry.remove();
     _isVisible = false;
+  }
+
+  /// Close geofence overlay, notify server logout when possible, clear session, go to login.
+  static void _onCloseTapped() {
+    hide();
+
+    Future(() async {
+      String latitude = '0';
+      String longitude = '0';
+      try {
+        final p = await Geolocator.getLastKnownPosition();
+        if (p != null) {
+          latitude = p.latitude.toString();
+          longitude = p.longitude.toString();
+        }
+      } catch (_) {}
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(PreferenceHelper.userToken);
+      if (token == null || token.isEmpty || token == 'null') {
+        await prefs.clear();
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          Navigator.pushAndRemoveUntil(
+            ctx,
+            cusNavigate(const LoginScreen()),
+            (route) => false,
+          );
+        }
+        return;
+      }
+
+      await LogoutRepo().logoutUser(
+        perform: 'Logout',
+        latitude: latitude,
+        longitude: longitude,
+        response: (message) async {
+          final p = await SharedPreferences.getInstance();
+          await p.clear();
+          final ctx = navigatorKey.currentContext;
+          if (ctx != null && ctx.mounted) {
+            Navigator.pushAndRemoveUntil(
+              ctx,
+              cusNavigate(const LoginScreen()),
+              (route) => false,
+            );
+          }
+        },
+      );
+    });
   }
 }
