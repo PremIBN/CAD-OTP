@@ -19,9 +19,6 @@ class ApiClient{
   String errorMessage = 'Something went Wrong';
   static const Duration _defaultTimeout = Duration(seconds: 30);
   static const Duration _geoTimeout = Duration(seconds: 20);
-  static const String _locationFetchErrorMessage =
-      'Unable to get location. Please enable GPS and try again.';
-  static String? _lastLocationFailureMessage;
 
 
   /// With out token api
@@ -100,12 +97,10 @@ class ApiClient{
       final access = await requestLocationPermission();
 
       if (!access) {
-        if (_lastLocationFailureMessage == null) {
-          LocationDialogService.show(navigatorKey.currentContext!);
-        }
+        LocationDialogService.show(navigatorKey.currentContext!);
         return {
           "Success": 0,
-          "Message": _lastLocationFailureMessage ??
+          "Message":
               "Login not allowed. You’re currently outside the allowed location. Please move closer to your assigned zone to proceed."
         };
       }
@@ -142,14 +137,8 @@ class ApiClient{
     final access = await requestLocationPermission();
 
     if (!access) {
-      if (_lastLocationFailureMessage == null) {
-        LocationDialogService.show(navigatorKey.currentContext!);
-      }
-      return {
-        "Success": 0,
-        "Message": _lastLocationFailureMessage ??
-            "Login not allowed. You're currently outside the allowed location. Please move closer to your assigned zone to proceed."
-      };
+      LocationDialogService.show(navigatorKey.currentContext!);
+      return {"Success": 0, "Message": "Login not allowed. You're currently outside the allowed location. Please move closer to your assigned zone to proceed."};
     }
     LocationDialogService.hide();
 
@@ -264,77 +253,54 @@ Future postMethod({
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
-    if (!serviceEnabled) {
-      _lastLocationFailureMessage = _locationFetchErrorMessage;
-      return false;
+    if(Platform.isIOS){
+      if (!serviceEnabled) {
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          locationDialog(
+            context: ctx,
+            onTapGotIt: () => Navigator.pop(ctx),
+          );
+        }
+        return false;
+      }
     }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        _lastLocationFailureMessage = _locationFetchErrorMessage;
         return false;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      _lastLocationFailureMessage = _locationFetchErrorMessage;
       return false;
     }
 
     try {
-      Position? position;
-
-      try {
-        // First attempt: fresh GPS fix.
-        position = await Geolocator
-            .getCurrentPosition(
-              locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.high,
-              ),
-            )
-            .timeout(_geoTimeout);
-      } catch (_) {
-        // Fallback: use cached location if available (avoids false failures when GPS fix is slow).
-        position = await Geolocator.getLastKnownPosition();
-      }
-
-      if (position == null) {
-        _lastLocationFailureMessage = _locationFetchErrorMessage;
-        final ctx = navigatorKey.currentContext;
-        if (ctx != null && ctx.mounted) {
-          CommonFunction.showSnackBar(
-            context: ctx,
-            isError: true,
-            message: _locationFetchErrorMessage,
-          );
-        }
-        return false;
-      }
-
-      final allowed = await checkLocation(
+      // Request a higher-accuracy GPS fix on iOS to reduce false "outside geofence" results.
+      final position = await Geolocator
+          .getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
+          .timeout(_geoTimeout);
+      return await checkLocation(
         latitude: position.latitude.toString(),
         longitude: position.longitude.toString(),
         token: token,
         loginDetailID: loginDetailID
       );
-      _lastLocationFailureMessage = null;
-      return allowed;
     } on TimeoutException catch (e) {
       appPrint(e);
-      _lastLocationFailureMessage = _locationFetchErrorMessage;
       final ctx = navigatorKey.currentContext;
       if (ctx != null && ctx.mounted) {
         CommonFunction.showSnackBar(
           context: ctx,
           isError: true,
-          message: _locationFetchErrorMessage,
+          message: 'Unable to get location. Please enable GPS and try again.',
         );
       }
       return false;
     } catch (e) {
-      _lastLocationFailureMessage = _locationFetchErrorMessage;
       final ctx = navigatorKey.currentContext;
       if (ctx != null && ctx.mounted) {
         CommonFunction.showSnackBar(context: ctx, isError: true, message: e.toString());

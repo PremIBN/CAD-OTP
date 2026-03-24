@@ -16,7 +16,6 @@ class LogoutRepo extends ApiClient {
         'tokenID' : preferences.getString(PreferenceHelper.userToken)!,
         'latlng': "$latitude,$longitude",
       },
-      skipLocationCheck: true,
     );
 
     try {
