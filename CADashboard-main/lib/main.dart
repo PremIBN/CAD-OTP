@@ -39,6 +39,7 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     await requestNotificationPermission();
+    await requestMicrophonePermission();
     preferences = await SharedPreferences.getInstance();
     await AppVersionService.init();
     appCrashlytics();
@@ -120,6 +121,21 @@ Future<void> requestNotificationPermission() async {
       await notification();
       appPrint("Notification permission already granted on iOS.");
     }
+  }
+}
+
+Future<void> requestMicrophonePermission() async {
+  final micStatus = await Permission.microphone.status;
+
+  if (micStatus.isDenied || micStatus.isPermanentlyDenied) {
+    final result = await Permission.microphone.request();
+    if (result.isGranted) {
+      appPrint("Microphone permission granted.");
+    } else {
+      appPrint("Microphone permission denied.");
+    }
+  } else {
+    appPrint("Microphone permission already granted.");
   }
 }
 

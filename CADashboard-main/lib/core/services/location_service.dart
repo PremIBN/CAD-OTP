@@ -60,7 +60,7 @@ class LocationService {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Lottie.asset(AppImages.locationAnimation, height: 150),
+                        Lottie.asset(AppImages.locationAnimation, height: 165),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 50),
                           child: const Text(

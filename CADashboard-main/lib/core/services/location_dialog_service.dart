@@ -1,7 +1,7 @@
 import 'package:cadashboard/core/utils/images.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../main.dart';
@@ -58,9 +58,9 @@ class LocationDialogService {
                           ),
                         ),
                         CusBtn(
-                          btnName: "Close",
-                          onTap: () {
-                            SystemNavigator.pop(animated: true);
+                          btnName: "Turn on",
+                          onTap: () async {
+                            await Geolocator.openAppSettings();
                           },
                         )
                       ],
