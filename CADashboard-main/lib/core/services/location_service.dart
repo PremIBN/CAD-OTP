@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart';
 import 'package:lottie/lottie.dart';
@@ -65,7 +64,8 @@ class LocationService {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 50),
                           child: Text(
-                            "Oops! Location is turned off. Please enable it to use the app smoothly.",
+                            "Oops! Location is turned off. Please enable it to use the app smoothly.
+                            Setting -> Privacy & Security -> Location Services -> ON",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
@@ -74,10 +74,10 @@ class LocationService {
                           children: [
                             Expanded(
                               child: CusBtn(
-                                btnName: "Exit",
+                                btnName: "Not Now",
                                 bGColor: Colors.red,
                                 onTap: () {
-                                  SystemNavigator.pop(animated: true);
+                                  _removeOverlay();
                                 },
                               ),
                             ),
@@ -85,15 +85,7 @@ class LocationService {
                               child: CusBtn(
                                 btnName: "Turn on",
                                 onTap: () async {
-                                  bool permissionGranted = await requestLocationPermission(context);
-                                  appPrint("Permission granted: $permissionGranted");
-                                  if (permissionGranted) {
-                                    bool serviceTurnedOn = await _location.requestService();
-                                    appPrint("Service turned on: $serviceTurnedOn");
-                                    if (serviceTurnedOn) {
-                                      _removeOverlay();
-                                    }
-                                  }
+                                  await _openLocationSettings();
                                 },
                               ),
                             ),
@@ -221,6 +213,31 @@ class LocationService {
     }
 
     return true ;
+  }
+
+  Future<void> _openLocationSettings() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final permission = await Geolocator.checkPermission();
+
+      // If permission is denied/restricted, open app settings directly.
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        await Geolocator.openAppSettings();
+        return;
+      }
+
+      // Otherwise open device location service settings.
+      if (!serviceEnabled) {
+        await Geolocator.openLocationSettings();
+        return;
+      }
+
+      // Fallback: keep user in app if everything is already enabled.
+      _removeOverlay();
+    } catch (e) {
+      appPrint("Unable to open location settings: $e");
+    }
   }
 
   void _removeOverlay() {
