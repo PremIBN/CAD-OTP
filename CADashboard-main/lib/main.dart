@@ -38,7 +38,6 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    await requestNotificationPermission();
     preferences = await SharedPreferences.getInstance();
     await AppVersionService.init();
     appCrashlytics();

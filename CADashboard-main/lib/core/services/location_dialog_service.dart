@@ -1,10 +1,13 @@
 import 'package:cadashboard/core/utils/images.dart';
+import 'package:cadashboard/ui/screen/login_screen.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
+import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
+import '../utils/preference_helper.dart';
 
 class LocationDialogService {
 
@@ -21,19 +24,18 @@ class LocationDialogService {
   static late OverlayEntry _overlayEntry;
   static bool _isVisible = false;
 
-  static Future<void> _openLocationOrPermissionSettings() async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    final permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      await Geolocator.openAppSettings();
-      return;
-    }
-
-    if (!serviceEnabled) {
-      await Geolocator.openLocationSettings();
-      return;
+  static Future<void> _logoutToLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(PreferenceHelper.userToken, 'null');
+    await prefs.setBool(PreferenceHelper.isSignIn, false);
+    await prefs.clear();
+    final ctx = navigatorKey.currentContext;
+    if (ctx != null && ctx.mounted) {
+      Navigator.pushAndRemoveUntil(
+        ctx,
+        cusNavigate(const LoginScreen()),
+        (route) => false,
+      );
     }
   }
 
@@ -68,18 +70,16 @@ class LocationDialogService {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 50),
                           child: Text(
-                            "Login not allowed. You’re currently outside the allowed location. Please move closer to your assigned zone to proceed.",
+                            "Login not allowed. You're currently outside the allowed location. Please move closer to your assigned zone to proceed.",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                         ),
                         CusBtn(
-                          btnName: "Turn on",
+                          btnName: "Close",
                           onTap: () async {
-                            // Close the overlay before navigating to settings so it
-                            // doesn't remain visible when user returns to the app.
                             hide();
-                            await _openLocationOrPermissionSettings();
+                            await _logoutToLogin();
                           },
                         )
                       ],

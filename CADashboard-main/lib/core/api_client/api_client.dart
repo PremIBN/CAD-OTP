@@ -101,7 +101,7 @@ class ApiClient{
         return {
           "Success": 0,
           "Message":
-              "Login not allowed. You’re currently outside the allowed location. Please move closer to your assigned zone to proceed."
+              "Login not allowed. You're currently outside the allowed location. Please move closer to your assigned zone to proceed."
         };
       }
       LocationDialogService.hide();

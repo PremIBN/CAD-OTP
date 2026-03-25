@@ -62,13 +62,34 @@ class LoginVM extends BaseModel {
     }
   }
 
-  Future<void> _requestPostLoginPermissions(BuildContext context) async {
-    try {
-      await requestNotificationPermission().timeout(_loginBootstrapTimeout);
-    } catch (e, st) {
-      log('LoginVM: notification permission request failed: $e');
-      log('LoginVM: notification permission stack: $st');
+  Future<void> _requestNotificationPermissionAfterLogin(BuildContext context) async {
+    final status = await Permission.notification.request();
+
+    if (status.isGranted) {
+      try {
+        await notification().timeout(_loginBootstrapTimeout);
+      } catch (e, st) {
+        log('LoginVM: notification bootstrap failed: $e');
+        log('LoginVM: notification bootstrap stack: $st');
+      }
+      return;
     }
+
+    if (status.isPermanentlyDenied) {
+      await openAppSettings();
+    }
+
+    if (context.mounted) {
+      CommonFunction.showSnackBar(
+        context: context,
+        isError: true,
+        message: "Notification permission is required.",
+      );
+    }
+  }
+
+  Future<void> _requestPostLoginPermissions(BuildContext context) async {
+    await _requestNotificationPermissionAfterLogin(context);
     await _requestMicrophonePermissionAfterLogin(context);
   }
 
