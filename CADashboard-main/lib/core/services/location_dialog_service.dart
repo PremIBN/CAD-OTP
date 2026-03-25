@@ -3,8 +3,12 @@ import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart';
+import '../../ui/screen/login_screen.dart';
+import '../../ui/widget/custom_navigate.dart';
+import '../utils/preference_helper.dart';
 
 class LocationDialogService {
 
@@ -77,7 +81,25 @@ class LocationDialogService {
                           btnName: "Close",
                           onTap: () async {
                             hide();
-                            await _openLocationOrPermissionSettings();
+                            // Requirement: if the geo-fence/location popup appears,
+                            // user taps Close => force logout immediately.
+                            try {
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setString(PreferenceHelper.userToken, 'null');
+                              await prefs.setBool(PreferenceHelper.isSignIn, false);
+                              await prefs.clear();
+                            } catch (_) {
+                              // Ignore storage errors; still navigate to login.
+                            }
+
+                            final ctx = navigatorKey.currentContext;
+                            if (ctx.mounted) {
+                              Navigator.pushAndRemoveUntil(
+                                ctx,
+                                cusNavigate(const LoginScreen()),
+                                (route) => false,
+                              );
+                            }
                           },
                         )
                       ],

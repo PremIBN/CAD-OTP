@@ -46,14 +46,17 @@ class _LoginScreenState extends State<LoginScreen> {
           bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
           if (Platform.isIOS) {
             if (!serviceEnabled) {
-              if (buildContext.mounted) {
-                locationDialog(
-                  context: buildContext,
-                  onTapGotIt: () => Navigator.pop(buildContext),
-                );
-              }
-              model.buttonLoader.value = false;
-              return false;
+              // iOS requirement: do not force the user into Location settings during login.
+              // Continue login with fallback coordinates.
+              if (!buildContext.mounted) return false;
+              model.login(
+                buildContext,
+                model.usernameController.text,
+                model.passwordController.text,
+                '0',
+                '0',
+              );
+              return true;
             }
           }
 
@@ -61,14 +64,30 @@ class _LoginScreenState extends State<LoginScreen> {
           if (permission == LocationPermission.denied) {
             permission = await Geolocator.requestPermission();
             if (permission == LocationPermission.denied) {
-              model.buttonLoader.value = false;
-              return false;
+              // iOS requirement: do not block login on location permission.
+              if (!buildContext.mounted) return false;
+              model.login(
+                buildContext,
+                model.usernameController.text,
+                model.passwordController.text,
+                '0',
+                '0',
+              );
+              return true;
             }
           }
 
           if (permission == LocationPermission.deniedForever) {
-            model.buttonLoader.value = false;
-            return false ;
+            // iOS requirement: do not block login on location permission.
+            if (!buildContext.mounted) return false;
+            model.login(
+              buildContext,
+              model.usernameController.text,
+              model.passwordController.text,
+              '0',
+              '0',
+            );
+            return true;
           }
 
           Position position;

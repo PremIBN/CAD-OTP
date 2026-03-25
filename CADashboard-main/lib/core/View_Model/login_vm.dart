@@ -58,17 +58,8 @@ class LoginVM extends BaseModel {
       return;
     }
 
-    if (status.isPermanentlyDenied) {
-      await openAppSettings();
-    }
-
-    if (context.mounted) {
-      CommonFunction.showSnackBar(
-        context: context,
-        isError: true,
-        message: "Notification permission is required.",
-      );
-    }
+    // iOS requirement: never redirect user to Settings after login.
+    // Notifications are optional; skip prompting user here if not granted.
   }
 
   Future<void> _requestPostLoginPermissions(BuildContext context) async {
@@ -164,35 +155,29 @@ class LoginVM extends BaseModel {
         successResponse: (success, message, response) async {
           appPrint('------>Login : $message');
           buttonLoader.value = false;
-          final access = await ApiClient().requestLocationPermission(
-            token: response.tokenId.toString(),
-            loginDetailID: response.loginDetailId.toString()
+          // iOS requirement: after successful login, always go to Home.
+          // Do not block on location validation or open settings dialogs here.
+          setPreferences(preferences, response);
+          addLoggedInAreaAddressRepository.afterLoginApi(
+            tokenID: "${response.tokenId}",
+            address: "",
+            loginDetailID: response.loginDetailId.toString(),
+            latitude: latitude,
+            longitude: longitude,
+            isLogin: "1",
+            successResponse: (success, message, response) async {
+              debugPrint("AfterLoginApi LoginVM Success --> :: $success :: $message :: $response");
+            },
+            failedResponse: (success, message) {
+              debugPrint("AfterLoginApi LoginVM Failed -> :: $success :: $message");
+            },
           );
-          if (!access) {
-            LocationDialogService.show(navigatorKey.currentContext!);
-          } else {
-            setPreferences(preferences, response);
-            addLoggedInAreaAddressRepository.afterLoginApi(
-              tokenID: "${response.tokenId}",
-              address: "",
-              loginDetailID: response.loginDetailId.toString(),
-              latitude: latitude,
-              longitude: longitude,
-              isLogin: "1",
-              successResponse: (success, message, response) async {
-                debugPrint("AfterLoginApi LoginVM Success --> :: $success :: $message :: $response");
-              },
-              failedResponse: (success, message) {
-                debugPrint("AfterLoginApi LoginVM Failed -> :: $success :: $message");
-              },
-            );
-            await _requestPostLoginPermissions(context);
-            Navigator.pushAndRemoveUntil(
-              context,
-              cusNavigate(HomeScreen(tokenId: response.tokenId)),
-              (route) => false,
-            );
-          }
+          await _requestPostLoginPermissions(context);
+          Navigator.pushAndRemoveUntil(
+            context,
+            cusNavigate(HomeScreen(tokenId: response.tokenId)),
+            (route) => false,
+          );
         },
         failedResponse: (success, message) {
           appPrint('------>Login Error : $message');
