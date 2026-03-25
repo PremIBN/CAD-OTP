@@ -93,7 +93,7 @@ class LocationDialogService {
                             }
 
                             final ctx = navigatorKey.currentContext;
-                            if (ctx.mounted) {
+                            if (ctx != null && ctx.mounted) {
                               Navigator.pushAndRemoveUntil(
                                 ctx,
                                 cusNavigate(const LoginScreen()),
