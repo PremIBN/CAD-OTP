@@ -45,23 +45,6 @@ class LoginVM extends BaseModel {
 
   static const Duration _loginBootstrapTimeout = Duration(seconds: 15);
 
-  Future<void> _requestMicrophonePermissionAfterLogin(BuildContext context) async {
-    final status = await Permission.microphone.request();
-    if (status.isGranted) return;
-
-    if (status.isPermanentlyDenied) {
-      await openAppSettings();
-    }
-
-    if (context.mounted) {
-      CommonFunction.showSnackBar(
-        context: context,
-        isError: true,
-        message: "Microphone permission is required.",
-      );
-    }
-  }
-
   Future<void> _requestNotificationPermissionAfterLogin(BuildContext context) async {
     final status = await Permission.notification.request();
 
@@ -90,7 +73,6 @@ class LoginVM extends BaseModel {
 
   Future<void> _requestPostLoginPermissions(BuildContext context) async {
     await _requestNotificationPermissionAfterLogin(context);
-    await _requestMicrophonePermissionAfterLogin(context);
   }
 
   Future<void> login(BuildContext context, String username, String password, String latitude, String longitude) async {

@@ -20,22 +20,39 @@ class LocationService {
 
   OverlayEntry? _overlayEntry;
   Timer? _locationCheckTimer;
+  _LocationBlockReason? _blockReason;
 
   void startMonitoring(BuildContext context) {
     _locationCheckTimer?.cancel();
     _locationCheckTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      bool enabled = await _location.serviceEnabled();
-      if (!enabled) {
-        if (_overlayEntry == null) _showOverlay(context);
+      final serviceEnabled = await _location.serviceEnabled();
+      final permission = await Geolocator.checkPermission();
+      final permissionDenied = permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever;
+
+      _LocationBlockReason? reason;
+      if (!serviceEnabled) {
+        reason = _LocationBlockReason.deviceServiceOff;
+      } else if (permissionDenied) {
+        reason = _LocationBlockReason.appPermissionOff;
+      }
+
+      if (reason != null) {
+        if (_overlayEntry == null || _blockReason != reason) {
+          _removeOverlay();
+          _blockReason = reason;
+          _showOverlay(context, reason);
+        }
         isLocationEnabled.value = false;
       } else {
+        _blockReason = null;
         _removeOverlay();
         isLocationEnabled.value = true;
       }
     });
   }
 
-  void _showOverlay(BuildContext context) {
+  void _showOverlay(BuildContext context, _LocationBlockReason reason) {
     _overlayEntry = OverlayEntry(
       builder: (_) => Stack(
         children: [
@@ -64,11 +81,14 @@ class LocationService {
                           children: [
                             Lottie.asset(AppImages.locationAnimation, height: 150),
                             const SizedBox(height: 12),
-                            const Text(
-                              "Oops! Location is turned off. Please enable it to use the app smoothly.\n"
-                              "Setting -> Privacy & Security -> Location Services -> ON",
+                            Text(
+                              reason == _LocationBlockReason.deviceServiceOff
+                                  ? "Oops! Location is turned off. Please enable it to use the app smoothly.\n"
+                                      "Settings -> Privacy & Security -> Location Services -> ON"
+                                  : "Oops! Location access for CADashboard is turned off. Please enable it to use the app smoothly.\n"
+                                      "Settings -> CADashboard -> Location -> While Using the App",
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -89,6 +109,9 @@ class LocationService {
                               child: CusBtn(
                                 btnName: "Turn on",
                                 onTap: () async {
+                                  // Hide the overlay before opening Settings so it doesn't
+                                  // remain visible when user returns to the app.
+                                  _removeOverlay();
                                   await _openLocationSettings();
                                 },
                               ),
@@ -260,3 +283,5 @@ class LocationService {
     _removeOverlay();
   }
 }
+
+enum _LocationBlockReason { deviceServiceOff, appPermissionOff }
