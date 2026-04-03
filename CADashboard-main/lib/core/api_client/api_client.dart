@@ -403,6 +403,7 @@ Future postMethod({
         return {"Success": 0, "Message": errorMessage, "StatusCode": response.statusCode};
       case 304:
         log(response.body);
+        return {"Success": 0, "Message": errorMessage, "StatusCode": response.statusCode};
       case 400:
         return {"Success": 0, "Message": response.body.toString(), "StatusCode": response.statusCode};
       case 401:

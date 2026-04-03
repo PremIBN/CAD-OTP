@@ -1,11 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:cadashboard/core/View_Model/login_vm.dart';
 import 'package:cadashboard/core/common/common_function.dart';
 import 'package:cadashboard/core/utils/colors.dart';
 import 'package:cadashboard/core/utils/images.dart';
 import 'package:cadashboard/core/utils/stateless_base_view.dart';
-import 'package:cadashboard/main.dart';
-import 'package:cadashboard/ui/screen/home.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:cadashboard/ui/widget/custom_textfield.dart';
@@ -26,6 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final formKey = GlobalKey<FormState>();
   final forgotFormKey = GlobalKey<FormState>();
   static const Duration _locationTimeout = Duration(seconds: 20);
+  static const Duration _geoServiceTimeout = Duration(seconds: 15);
+  static const Duration _permissionTimeout = Duration(seconds: 60);
 
   @override
   void initState() {
@@ -39,79 +40,136 @@ class _LoginScreenState extends State<LoginScreen> {
       model: LoginVM(),
       builder: (buildContext, model, child) {
 
-        requestLocationPermission() async {
+        Future<void> loginWithFallbackCoords() async {
+          if (!buildContext.mounted) return;
+          await model.login(
+            buildContext,
+            model.usernameController.text,
+            model.passwordController.text,
+            '0',
+            '0',
+          );
+        }
+
+        Future<bool> requestLocationPermission() async {
           LocationPermission permission;
-          // Check if location services are enabled
 
-          bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-          if (Platform.isIOS) {
-            if (!serviceEnabled) {
-              // iOS requirement: do not force the user into Location settings during login.
-              // Continue login with fallback coordinates.
-              if (!buildContext.mounted) return false;
-              model.login(
-                buildContext,
-                model.usernameController.text,
-                model.passwordController.text,
-                '0',
-                '0',
-              );
-              return true;
-            }
+          void clearLoaderIfNeeded() {
+            if (!buildContext.mounted) return;
+            model.buttonLoader.value = false;
           }
 
-          permission = await Geolocator.checkPermission();
-          if (permission == LocationPermission.denied) {
-            permission = await Geolocator.requestPermission();
+          try {
+            final serviceEnabled = await Geolocator.isLocationServiceEnabled()
+                .timeout(_geoServiceTimeout, onTimeout: () => false);
+            if (Platform.isIOS) {
+              if (!serviceEnabled) {
+                if (!buildContext.mounted) {
+                  clearLoaderIfNeeded();
+                  return false;
+                }
+                await loginWithFallbackCoords();
+                return true;
+              }
+            }
+
+            permission = await Geolocator.checkPermission().timeout(
+              _geoServiceTimeout,
+              onTimeout: () => LocationPermission.denied,
+            );
             if (permission == LocationPermission.denied) {
-              // iOS requirement: do not block login on location permission.
-              if (!buildContext.mounted) return false;
-              model.login(
-                buildContext,
-                model.usernameController.text,
-                model.passwordController.text,
-                '0',
-                '0',
+              permission = await Geolocator.requestPermission().timeout(
+                _permissionTimeout,
+                onTimeout: () => LocationPermission.denied,
               );
-              return true;
+              if (permission == LocationPermission.denied) {
+                if (Platform.isIOS) {
+                  if (!buildContext.mounted) {
+                    clearLoaderIfNeeded();
+                    return false;
+                  }
+                  await loginWithFallbackCoords();
+                  return true;
+                }
+                clearLoaderIfNeeded();
+                if (buildContext.mounted) {
+                  CommonFunction.showSnackBar(
+                    context: buildContext,
+                    isError: true,
+                    message: 'Location permission is required to sign in.',
+                  );
+                }
+                return false;
+              }
             }
-          }
 
-          if (permission == LocationPermission.deniedForever) {
-            // iOS requirement: do not block login on location permission.
-            if (!buildContext.mounted) return false;
-            model.login(
+            if (permission == LocationPermission.deniedForever) {
+              if (Platform.isIOS) {
+                if (!buildContext.mounted) {
+                  clearLoaderIfNeeded();
+                  return false;
+                }
+                await loginWithFallbackCoords();
+                return true;
+              }
+              clearLoaderIfNeeded();
+              if (buildContext.mounted) {
+                CommonFunction.showSnackBar(
+                  context: buildContext,
+                  isError: true,
+                  message: 'Location permission is required to sign in.',
+                );
+              }
+              return false;
+            }
+
+            Position position;
+            try {
+              position = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.high,
+              ).timeout(_locationTimeout);
+            } catch (e) {
+              if (Platform.isIOS) {
+                if (!buildContext.mounted) {
+                  clearLoaderIfNeeded();
+                  return false;
+                }
+                await loginWithFallbackCoords();
+                return true;
+              }
+              clearLoaderIfNeeded();
+              if (buildContext.mounted) {
+                CommonFunction.showSnackBar(
+                  context: buildContext,
+                  isError: true,
+                  message: 'Unable to get location. Please enable GPS and try again.',
+                );
+              }
+              return false;
+            }
+            if (!buildContext.mounted) {
+              clearLoaderIfNeeded();
+              return false;
+            }
+            await model.login(
               buildContext,
               model.usernameController.text,
               model.passwordController.text,
-              '0',
-              '0',
+              position.latitude.toString(),
+              position.longitude.toString(),
             );
             return true;
-          }
-
-          Position position;
-          try {
-            position = await Geolocator
-                .getCurrentPosition(desiredAccuracy: LocationAccuracy.high)
-                .timeout(_locationTimeout);
           } catch (e) {
-            model.buttonLoader.value = false;
+            clearLoaderIfNeeded();
             if (buildContext.mounted) {
               CommonFunction.showSnackBar(
                 context: buildContext,
                 isError: true,
-                message: "Unable to get location. Please enable GPS and try again.",
+                message: 'Sign-in could not start. Please try again.',
               );
             }
             return false;
           }
-          if (!buildContext.mounted) return false;
-          model.login(buildContext, model.usernameController.text, model.passwordController.text,
-            position.latitude.toString(), position.longitude.toString()).then((value) {
-          });
-
-          return true;
         }
 
 

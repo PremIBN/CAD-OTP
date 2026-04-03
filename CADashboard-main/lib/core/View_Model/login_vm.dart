@@ -1,5 +1,6 @@
 // ignore_for_file: await_only_futures
 
+import 'dart:async';
 import 'dart:developer';
 import 'package:cadashboard/core/api_client/api_client.dart';
 import 'package:dart_ipify/dart_ipify.dart';
@@ -44,35 +45,52 @@ class LoginVM extends BaseModel {
   NetworkInfo network = NetworkInfo();
 
   static const Duration _loginBootstrapTimeout = Duration(seconds: 15);
+  static const Duration _deviceInfoTimeout = Duration(seconds: 12);
+  static const Duration _prefsTimeout = Duration(seconds: 12);
+  static const Duration _notificationPermissionTimeout = Duration(seconds: 20);
 
-  Future<void> _requestNotificationPermissionAfterLogin(BuildContext context) async {
-    final status = await Permission.notification.request();
+  /// Runs after Home is shown. Must not block navigation on login success (App Store review / slow devices).
+  Future<void> _requestNotificationPermissionAfterLogin() async {
+    try {
+      final status = await Permission.notification
+          .request()
+          .timeout(_notificationPermissionTimeout);
 
-    if (status.isGranted) {
-      try {
-        await notification().timeout(_loginBootstrapTimeout);
-      } catch (e, st) {
-        log('LoginVM: notification bootstrap failed: $e');
-        log('LoginVM: notification bootstrap stack: $st');
+      if (status.isGranted) {
+        try {
+          await notification().timeout(_loginBootstrapTimeout);
+        } catch (e, st) {
+          log('LoginVM: notification bootstrap failed: $e');
+          log('LoginVM: notification bootstrap stack: $st');
+        }
+      }
+    } catch (e, st) {
+      log('LoginVM: notification permission timeout or error: $e');
+      log('LoginVM: notification permission stack: $st');
+    }
+  }
+
+  Future<void> login(BuildContext context, String username, String password, String latitude, String longitude) async {
+    SharedPreferences preferences;
+    try {
+      preferences = await SharedPreferences.getInstance().timeout(_prefsTimeout);
+    } catch (e, st) {
+      log('LoginVM: SharedPreferences failed: $e');
+      log('LoginVM: SharedPreferences stack: $st');
+      buttonLoader.value = false;
+      if (context.mounted) {
+        CommonFunction.showSnackBar(
+          context: context,
+          isError: true,
+          message: 'Could not access device storage. Please try again.',
+        );
       }
       return;
     }
 
-    // iOS requirement: never redirect user to Settings after login.
-    // Notifications are optional; skip prompting user here if not granted.
-  }
-
-  Future<void> _requestPostLoginPermissions(BuildContext context) async {
-    await _requestNotificationPermissionAfterLogin(context);
-  }
-
-  Future<void> login(BuildContext context, String username, String password, String latitude, String longitude) async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-
     log(name: "Login Token", "${preferences.getString(PreferenceHelper.fcmToken)}");
 
     if (Platform.isAndroid) {
-
       String ipv4 = '0.0.0.0';
       try {
         ipv4 = await Ipify.ipv4().timeout(_loginBootstrapTimeout);
@@ -81,14 +99,21 @@ class LoginVM extends BaseModel {
         log('LoginVM: Ipify ipv4 stack (Android): $st');
       }
 
-      AndroidDeviceInfo android = await device.androidInfo;
+      String deviceName = 'Android';
+      try {
+        final android = await device.androidInfo.timeout(_deviceInfoTimeout);
+        deviceName = android.model;
+      } catch (e, st) {
+        log('LoginVM: androidInfo failed: $e');
+        log('LoginVM: androidInfo stack: $st');
+      }
 
       loginRepository.authenticateUser(
         username: username,
         password: password,
         loginMode: '2',
         deviceID: await preferences.getString(PreferenceHelper.fcmToken) ?? "",
-        deviceName: android.model,
+        deviceName: deviceName,
         ip: ipv4,
         latitude: latitude,
         longitude: longitude,
@@ -119,12 +144,12 @@ class LoginVM extends BaseModel {
             );
             // Pass the freshly issued tokenID into HomeScreen so it uses
             // this token for initial menu loading instead of any older stored token.
-            await _requestPostLoginPermissions(context);
             Navigator.pushAndRemoveUntil(
               context,
               cusNavigate(HomeScreen(tokenId: response.tokenId)),
               (route) => false,
             );
+            unawaited(_requestNotificationPermissionAfterLogin());
           }
         },
         failedResponse: (success, message) {
@@ -134,7 +159,14 @@ class LoginVM extends BaseModel {
         },
       );
     } else if (Platform.isIOS) {
-      IosDeviceInfo ios = await device.iosInfo;
+      String deviceName = 'iOS';
+      try {
+        final ios = await device.iosInfo.timeout(_deviceInfoTimeout);
+        deviceName = ios.model;
+      } catch (e, st) {
+        log('LoginVM: iosInfo failed: $e');
+        log('LoginVM: iosInfo stack: $st');
+      }
 
       String ipv4 = '0.0.0.0';
       try {
@@ -143,12 +175,13 @@ class LoginVM extends BaseModel {
         log('LoginVM: Ipify ipv4 failed (iOS): $e');
         log('LoginVM: Ipify ipv4 stack (iOS): $st');
       }
-      loginRepository.authenticateUser(
+      try {
+        loginRepository.authenticateUser(
         username: username,
         password: password,
         loginMode: '2',
         deviceID: await preferences.getString(PreferenceHelper.fcmToken) ?? "",
-        deviceName: ios.model,
+        deviceName: deviceName,
         ip: ipv4,
         latitude: latitude,
         longitude: longitude,
@@ -172,12 +205,14 @@ class LoginVM extends BaseModel {
               debugPrint("AfterLoginApi LoginVM Failed -> :: $success :: $message");
             },
           );
-          await _requestPostLoginPermissions(context);
+          if (!context.mounted) return;
           Navigator.pushAndRemoveUntil(
             context,
             cusNavigate(HomeScreen(tokenId: response.tokenId)),
             (route) => false,
           );
+          // Notifications/FCM after navigation so login never appears stuck (Guideline 2.1).
+          unawaited(_requestNotificationPermissionAfterLogin());
         },
         failedResponse: (success, message) {
           appPrint('------>Login Error : $message');
@@ -185,6 +220,18 @@ class LoginVM extends BaseModel {
           CommonFunction.showSnackBar(context: context, isError: true, message: message);
         },
       );
+      } catch (e, st) {
+        log('LoginVM: iOS login failed: $e');
+        log('LoginVM: iOS login stack: $st');
+        buttonLoader.value = false;
+        if (context.mounted) {
+          CommonFunction.showSnackBar(
+            context: context,
+            isError: true,
+            message: 'Login could not complete. Please try again.',
+          );
+        }
+      }
     }
   }
 

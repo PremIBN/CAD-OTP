@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -14,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LoginRepo extends ApiClient {
 
   static const String _fallbackMessage = 'Something went wrong';
+  static const Duration _prefsAfterLoginTimeout = Duration(seconds: 12);
 
   static const List<String> _messageKeys = [
     'Message', 'message', 'msg', 'Msg', 'error', 'Error', 'errorMessage', 'ErrorMessage',
@@ -116,7 +118,14 @@ class LoginRepo extends ApiClient {
       }
     }
 
-    SharedPreferences preferences = await SharedPreferences.getInstance();
+    SharedPreferences preferences;
+    try {
+      preferences =
+          await SharedPreferences.getInstance().timeout(_prefsAfterLoginTimeout);
+    } on TimeoutException {
+      failedResponse(0, 'Login timed out while saving session. Please try again.');
+      return;
+    }
 
         try {
           if (result is! Map<String, dynamic>) {
