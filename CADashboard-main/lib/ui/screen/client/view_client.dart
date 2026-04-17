@@ -12,6 +12,8 @@ import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cadashboard/core/repository/menu_repository.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
+import 'package:cadashboard/core/services/app_locale_controller.dart';
 
 class ViewClient extends StatefulWidget {
   const ViewClient({super.key});
@@ -43,9 +45,14 @@ class _ViewClientState extends State<ViewClient> {
         });
       },
       builder: (buildContext, model, child) {
-        return Scaffold(
+        return Localizations.override(
+          context: buildContext,
+          locale: const Locale('en'),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Scaffold(
             appBar: AppBar(
-              title: const Text('Client'),
+              title: Text(ApiTextLocalizer.localize('Client', locale: Localizations.localeOf(buildContext))),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.search),
@@ -78,8 +85,9 @@ class _ViewClientState extends State<ViewClient> {
                   padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 20),
                   child: TextFormField(
                     controller: model.searchController,
+                    hintLocales: AppLocaleController.inputHintLocales(buildContext),
                     decoration: InputDecoration(
-                      hintText: '3 character required by Search',
+                      hintText: ApiTextLocalizer.localize('3 character required by Search', locale: Localizations.localeOf(buildContext)),
                       contentPadding: const EdgeInsets.all(15),
                       enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(25),
@@ -242,26 +250,38 @@ class _ViewClientState extends State<ViewClient> {
                         child: Column(
                           children: [
                             Image.asset(AppImages.task,width: 25,height: 25),
-                            Text('Task',style: TextStyle(fontSize: 13)),
+                            Text(
+                              ApiTextLocalizer.localize('Task', locale: Localizations.localeOf(buildContext)),
+                              style: const TextStyle(fontSize: 13),
+                            ),
                           ],
                         ),
                       ),
                       Column(
                         children: [
                           Image.asset(AppImages.document,width: 25,height: 25),
-                          Text('Document',style: TextStyle(fontSize: 13)),
+                          Text(
+                            ApiTextLocalizer.localize('Document', locale: Localizations.localeOf(buildContext)),
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ],
                       ),
                       Column(
                         children: [
                           Image.asset(AppImages.expense,width: 23,height: 21),
-                          Text('Expense',style: TextStyle(fontSize: 13)),
+                          Text(
+                            ApiTextLocalizer.localize('Expense', locale: Localizations.localeOf(buildContext)),
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ],
                       ),
                       Column(
                         children: [
                           Image.asset(AppImages.advance, color: Colors.grey, width: 30,height: 25),
-                          Text('Advance',style: TextStyle(fontSize: 13)),
+                          Text(
+                            ApiTextLocalizer.localize('Advance', locale: Localizations.localeOf(buildContext)),
+                            style: const TextStyle(fontSize: 13),
+                          ),
                         ],
                       ),
                     ],
@@ -271,6 +291,8 @@ class _ViewClientState extends State<ViewClient> {
               ),
             )*/
 
+            ),
+          ),
         );
       },
     );

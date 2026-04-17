@@ -26,6 +26,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:cadashboard/core/common/common_function.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:cadashboard/main.dart' show navigatorKey;
 import 'package:cadashboard/core/repository/menu_repository.dart';
 import 'package:screenshot_guard/screenshot_guard.dart';
@@ -133,7 +134,7 @@ class DocumentScreen extends StatelessWidget {
               return Scaffold(
                 backgroundColor: _DocTheme.background,
                 appBar: AppBar(
-                  title: const Text('Documents'),
+                  title: Text(ApiTextLocalizer.localize('Documents', locale: Localizations.localeOf(buildContext))),
                   backgroundColor: _DocTheme.surface,
                   foregroundColor: _DocTheme.textPrimary,
                 ),
@@ -144,11 +145,11 @@ class DocumentScreen extends StatelessWidget {
               return Scaffold(
                 backgroundColor: _DocTheme.background,
                 appBar: AppBar(
-                  title: const Text('Documents'),
+                  title: Text(ApiTextLocalizer.localize('Documents', locale: Localizations.localeOf(buildContext))),
                   backgroundColor: _DocTheme.surface,
                   foregroundColor: _DocTheme.textPrimary,
                 ),
-                body: EmptyData(emptyData: 'Unable to load documents.'),
+                body: EmptyData(emptyData: ApiTextLocalizer.localize('Unable to load documents.', locale: Localizations.localeOf(buildContext))),
               );
             }
             final isRootLevel = !model.canGoBack;
@@ -160,9 +161,12 @@ class DocumentScreen extends StatelessWidget {
               backgroundColor: isRootLevel ? _DocTheme.background : null,
               appBar: AppBar(
                 title: Text(
-                  model.canGoBack && model.currentTitle.isNotEmpty
-                      ? model.currentTitle
-                      : 'Documents',
+                  ApiTextLocalizer.localize(
+                    model.canGoBack && model.currentTitle.isNotEmpty
+                        ? model.currentTitle
+                        : 'Documents',
+                    locale: Localizations.localeOf(buildContext),
+                  ),
                 ),
                 backgroundColor: isRootLevel ? _DocTheme.surface : null,
                 foregroundColor: isRootLevel ? _DocTheme.textPrimary : null,
@@ -303,20 +307,20 @@ class DocumentScreen extends StatelessWidget {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Filter documents'),
+          title: Text(ApiTextLocalizer.localize('Filter documents', locale: Localizations.localeOf(context))),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  title: const Text('Client'),
+                  title: Text(ApiTextLocalizer.localize('Client', locale: Localizations.localeOf(context))),
                   onTap: () {
                     Navigator.pop(ctx);
                     _showDocumentClientFilterSheet(context: context, model: model);
                   },
                 ),
                 ListTile(
-                  title: const Text('Financial Year'),
+                  title: Text(ApiTextLocalizer.localize('Financial Year', locale: Localizations.localeOf(context))),
                   onTap: () {
                     Navigator.pop(ctx);
                     _showDocumentFyFilterSheet(context: context, model: model);
@@ -324,7 +328,7 @@ class DocumentScreen extends StatelessWidget {
                 ),
                 const Divider(),
                 ListTile(
-                  title: const Text('Clear filters'),
+                  title: Text(ApiTextLocalizer.localize('Clear filters', locale: Localizations.localeOf(context))),
                   onTap: () {
                     model.clearDocumentFilters();
                     model.loadFolders(context);
@@ -375,13 +379,13 @@ class DocumentScreen extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(top: 8, bottom: 8),
                         child: Text(
-                          'Select Client',
+                          ApiTextLocalizer.localize('Select Client', locale: Localizations.localeOf(context)),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
                       TextField(
                         decoration: InputDecoration(
-                          hintText: 'Search client name...',
+                          hintText: ApiTextLocalizer.localize('Search client name...', locale: Localizations.localeOf(context)),
                           prefixIcon: const Icon(Icons.search),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -401,8 +405,8 @@ class DocumentScreen extends StatelessWidget {
                                 ? Center(
                                     child: Text(
                                       searchQuery.trim().isEmpty
-                                          ? 'No clients'
-                                          : 'No matching clients',
+                                          ? ApiTextLocalizer.localize('No clients', locale: Localizations.localeOf(context))
+                                          : ApiTextLocalizer.localize('No matching clients', locale: Localizations.localeOf(context)),
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                             color: Theme.of(context).hintColor,
                                           ),
@@ -614,14 +618,14 @@ class DocumentScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Text(
-                  'Share document',
+                  ApiTextLocalizer.localize('Share document', locale: Localizations.localeOf(context)),
                   style: theme.textTheme.titleMedium,
                 ),
               ),
               ListTile(
                 leading: Icon(Icons.share, color: theme.colorScheme.primary),
-                title: const Text('Share file via apps'),
-                subtitle: const Text('Send the actual document (WhatsApp, Gmail, Drive…)'),
+                title: Text(ApiTextLocalizer.localize('Share file via apps', locale: Localizations.localeOf(context))),
+                subtitle: Text(ApiTextLocalizer.localize('Send the actual document (WhatsApp, Gmail, Drive…)', locale: Localizations.localeOf(context))),
                 onTap: () async {
                   Navigator.pop(ctx);
                   if (!context.mounted) return;
@@ -667,8 +671,8 @@ class DocumentScreen extends StatelessWidget {
               ),
               ListTile(
                 leading: Icon(Icons.link, color: theme.colorScheme.primary),
-                title: const Text('Copy link'),
-                subtitle: const Text('Paste the link anywhere to share'),
+                title: Text(ApiTextLocalizer.localize('Copy link', locale: Localizations.localeOf(context))),
+                subtitle: Text(ApiTextLocalizer.localize('Paste the link anywhere to share', locale: Localizations.localeOf(context))),
                 onTap: () {
                   Navigator.pop(ctx);
                   if (!context.mounted) return;
@@ -716,7 +720,12 @@ class DocumentScreen extends StatelessWidget {
             children: [
               ListTile(
                 leading: Icon(Icons.create_new_folder, color: theme.colorScheme.primary),
-                title: Text(isRootLevel ? 'New folder' : 'New subfolder'),
+                title: Text(
+                  ApiTextLocalizer.localize(
+                    isRootLevel ? 'New folder' : 'New subfolder',
+                    locale: Localizations.localeOf(context),
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _showNewFolderDialog(context: context, model: model, isSubfolder: !isRootLevel);
@@ -725,7 +734,7 @@ class DocumentScreen extends StatelessWidget {
               if (canAdd) ...[
                 ListTile(
                   leading: Icon(Icons.upload_file, color: theme.colorScheme.primary),
-                  title: const Text('Upload files'),
+                  title: Text(ApiTextLocalizer.localize('Upload files', locale: Localizations.localeOf(context))),
                   onTap: () {
                     Navigator.pop(ctx);
                     if (isRootLevel) {
@@ -738,7 +747,7 @@ class DocumentScreen extends StatelessWidget {
                 if (!isRootLevel) ...[
                   ListTile(
                     leading: Icon(Icons.camera_alt, color: theme.colorScheme.primary),
-                    title: const Text('Take Photo'),
+                    title: Text(ApiTextLocalizer.localize('Take Photo', locale: Localizations.localeOf(context))),
                     onTap: () {
                       Navigator.pop(ctx);
                       _captureImageAndUpload(
@@ -751,7 +760,7 @@ class DocumentScreen extends StatelessWidget {
                   ),
                   ListTile(
                     leading: Icon(Icons.document_scanner, color: theme.colorScheme.primary),
-                    title: const Text('Scan Document'),
+                    title: Text(ApiTextLocalizer.localize('Scan Document', locale: Localizations.localeOf(context))),
                     onTap: () {
                       Navigator.pop(ctx);
                       _captureImageAndUpload(
@@ -768,7 +777,7 @@ class DocumentScreen extends StatelessWidget {
                 if (MenuRepository.canShareDocument)
                   ListTile(
                     leading: Icon(Icons.share, color: theme.colorScheme.primary),
-                    title: const Text('Share'),
+                    title: Text(ApiTextLocalizer.localize('Share', locale: Localizations.localeOf(context))),
                     onTap: () {
                       Navigator.pop(ctx);
                       _showShareDocumentSheet(context: context, model: model);
@@ -778,7 +787,7 @@ class DocumentScreen extends StatelessWidget {
               if (isRootLevel && MenuRepository.canShareDocument)
                 ListTile(
                   leading: Icon(Icons.share, color: theme.colorScheme.primary),
-                  title: const Text('Share'),
+                  title: Text(ApiTextLocalizer.localize('Share', locale: Localizations.localeOf(context))),
                   onTap: () {
                     Navigator.pop(ctx);
                     if (context.mounted) {
@@ -1074,7 +1083,10 @@ class DocumentScreen extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text('Select folder to upload to', style: Theme.of(ctx).textTheme.titleMedium),
+                      child: Text(
+                        ApiTextLocalizer.localize('Select folder to upload to', locale: Localizations.localeOf(context)),
+                        style: Theme.of(ctx).textTheme.titleMedium,
+                      ),
               ),
               ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: maxH),
@@ -1085,7 +1097,12 @@ class DocumentScreen extends StatelessWidget {
                     final f = folders[i];
                     return ListTile(
                       leading: const Icon(Icons.folder_outlined),
-                      title: Text(f.folderName.isNotEmpty ? f.folderName : 'Folder'),
+                      title: Text(
+                        ApiTextLocalizer.localize(
+                          f.folderName.isNotEmpty ? f.folderName : 'Folder',
+                          locale: Localizations.localeOf(context),
+                        ),
+                      ),
                       onTap: () {
                         Navigator.pop(ctx);
                         _pickAndUploadFiles(context, model, f.docFolderId);
@@ -1211,6 +1228,10 @@ class _DocumentBody extends StatelessWidget {
       final emptyMessage = isRootLevel
           ? 'No Data Found'
           : 'No folders or files here.';
+      final localizedEmptyMessage = ApiTextLocalizer.localize(
+        emptyMessage,
+        locale: Localizations.localeOf(context),
+      );
       return RefreshIndicator(
         onRefresh: onRefresh,
         child: SingleChildScrollView(
@@ -1219,7 +1240,7 @@ class _DocumentBody extends StatelessWidget {
             height: MediaQuery.of(context).size.height * 0.5,
             child: Center(
               child: Text(
-                emptyMessage,
+                localizedEmptyMessage,
                 style: TextStyle(
                   fontSize: 16,
                   color: isRootLevel ? _DocTheme.textSecondary : theme.hintColor,
@@ -1750,12 +1771,12 @@ class _DocumentBody extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Rename folder'),
+        title: Text(ApiTextLocalizer.localize('Rename folder', locale: Localizations.localeOf(context))),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(
-            labelText: 'Folder name',
-            hintText: 'Enter name',
+          decoration: InputDecoration(
+            labelText: ApiTextLocalizer.localize('Folder name', locale: Localizations.localeOf(context)),
+            hintText: ApiTextLocalizer.localize('Enter name', locale: Localizations.localeOf(context)),
             border: OutlineInputBorder(),
           ),
           autofocus: true,
@@ -1764,7 +1785,7 @@ class _DocumentBody extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(ApiTextLocalizer.localize('Cancel', locale: Localizations.localeOf(context))),
           ),
           FilledButton(
             onPressed: () {
@@ -1785,7 +1806,7 @@ class _DocumentBody extends StatelessWidget {
                 parentFolderId: folder.parentFolderId,
               );
             },
-            child: const Text('Save'),
+            child: Text(ApiTextLocalizer.localize('Save', locale: Localizations.localeOf(context))),
           ),
         ],
       ),
@@ -1819,7 +1840,10 @@ class _DocumentBody extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text('Move "$itemLabel" to', style: Theme.of(ctx).textTheme.titleMedium),
+                child: Text(
+                  ApiTextLocalizer.localize('Move "$itemLabel" to', locale: Localizations.localeOf(context)),
+                  style: Theme.of(ctx).textTheme.titleMedium,
+                ),
               ),
               ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: maxH),
@@ -1830,7 +1854,12 @@ class _DocumentBody extends StatelessWidget {
                     final f = folders[i];
                     return ListTile(
                       leading: const Icon(Icons.folder_outlined),
-                      title: Text(f.folderName.isNotEmpty ? f.folderName : 'Folder'),
+                      title: Text(
+                        ApiTextLocalizer.localize(
+                          f.folderName.isNotEmpty ? f.folderName : 'Folder',
+                          locale: Localizations.localeOf(context),
+                        ),
+                      ),
                       onTap: () {
                         Navigator.pop(ctx);
                         if (documentId != null) {
@@ -1942,7 +1971,10 @@ class _FolderListTile extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    folder.folderName.isNotEmpty ? folder.folderName : 'Folder',
+                    ApiTextLocalizer.localize(
+                      folder.folderName.isNotEmpty ? folder.folderName : 'Folder',
+                      locale: Localizations.localeOf(context),
+                    ),
                     style: TextStyle(fontSize: fontSize, color: textColor),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1999,7 +2031,7 @@ class _FolderListTile extends StatelessWidget {
                         value: 'view',
                         child: ListTile(
                           leading: Icon(Icons.visibility, color: _folderActionIconColor),
-                          title: const Text('View'),
+                          title: Text(ApiTextLocalizer.localize('View', locale: Localizations.localeOf(buildContext))),
                           dense: true,
                         ),
                       ),
@@ -2016,7 +2048,7 @@ class _FolderListTile extends StatelessWidget {
                           value: 'download',
                           child: ListTile(
                             leading: Icon(Icons.download, color: _folderActionIconColor),
-                            title: const Text('Download folder'),
+                            title: Text(ApiTextLocalizer.localize('Download folder', locale: Localizations.localeOf(buildContext))),
                             dense: true,
                           ),
                         ),
@@ -2025,13 +2057,23 @@ class _FolderListTile extends StatelessWidget {
                           value: 'share',
                           child: ListTile(
                             leading: Icon(Icons.share, color: _folderActionIconColor),
-                            title: const Text('Share'),
+                            title: Text(ApiTextLocalizer.localize('Share', locale: Localizations.localeOf(buildContext))),
                             dense: true,
                           ),
                         ),
                     ];
                     if (!isRootLevel) {
-                      items.insert(1, PopupMenuItem(value: 'rename', child: ListTile(leading: Icon(Icons.edit, color: _folderActionIconColor), title: const Text('Rename'), dense: true)));
+                      items.insert(
+                        1,
+                        PopupMenuItem(
+                          value: 'rename',
+                          child: ListTile(
+                            leading: Icon(Icons.edit, color: _folderActionIconColor),
+                            title: Text(ApiTextLocalizer.localize('Rename', locale: Localizations.localeOf(buildContext))),
+                            dense: true,
+                          ),
+                        ),
+                      );
                     }
                     return items;
                   },

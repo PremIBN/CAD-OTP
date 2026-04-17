@@ -62,7 +62,11 @@ class AddClientVM extends BaseModel {
       },
       failedResponse: (success, message, statusCode) {
         appPrint('Token : $message');
-        CommonFunction.showSnackBar(context: context, isError: true, message: 'Your Session has been Expired');
+        CommonFunction.showSnackBarAuthEnglishOnly(
+          context: context,
+          isError: true,
+          message: 'Your Session has been Expired',
+        );
         Navigator.pushAndRemoveUntil(context, cusNavigate(const LoginScreen()), (route) => false);
         viewLoader.value = ViewState.failed;
       },

@@ -3,6 +3,7 @@ import 'package:cadashboard/core/utils/stateless_base_view.dart';
 import 'package:cadashboard/core/utils/utils.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:cadashboard/ui/widget/custom_textfield.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:flutter/material.dart';
 
 class ForgotPasswore extends StatefulWidget {
@@ -27,7 +28,7 @@ class _ForgotPassworeState extends State<ForgotPasswore> {
       builder: (buildContext, model, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Forgot Password'),
+            title: Text(ApiTextLocalizer.localize('Forgot Password', locale: Localizations.localeOf(buildContext))),
           ),
           body: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -36,11 +37,15 @@ class _ForgotPassworeState extends State<ForgotPasswore> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: size.height * 0.03,),
-                  const Align(
+                  Align(
                     alignment: FractionalOffset.centerLeft,
-                    child: Text('Please provide your registered "Username & Email ID" to sent the reset password link.',style: TextStyle(
-                      fontSize: 15, color: Colors.black38,
-                    ),),
+                    child: Text(
+                      ApiTextLocalizer.localize(
+                        'Please provide your registered "Username & Email ID" to sent the reset password link.',
+                        locale: Localizations.localeOf(buildContext),
+                      ),
+                      style: const TextStyle(fontSize: 15, color: Colors.black38),
+                    ),
                   ),
                   SizedBox(height: size.height * 0.03),
                   Form(

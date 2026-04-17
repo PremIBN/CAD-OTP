@@ -52,6 +52,10 @@ class LoginVM extends BaseModel {
   /// Runs after Home is shown. Must not block navigation on login success (App Store review / slow devices).
   Future<void> _requestNotificationPermissionAfterLogin() async {
     try {
+      final prefs = await SharedPreferences.getInstance().timeout(_prefsTimeout);
+      if (!(prefs.getBool(PreferenceHelper.appNotificationsUserEnabled) ?? true)) {
+        return;
+      }
       final status = await Permission.notification
           .request()
           .timeout(_notificationPermissionTimeout);
@@ -79,7 +83,7 @@ class LoginVM extends BaseModel {
       log('LoginVM: SharedPreferences stack: $st');
       buttonLoader.value = false;
       if (context.mounted) {
-        CommonFunction.showSnackBar(
+        CommonFunction.showSnackBarLoginPageOnly(
           context: context,
           isError: true,
           message: 'Could not access device storage. Please try again.',
@@ -107,6 +111,13 @@ class LoginVM extends BaseModel {
         log('LoginVM: androidInfo failed: $e');
         log('LoginVM: androidInfo stack: $st');
       }
+
+      // Persist context for later MarkAttendance calls
+      await preferences.setString(PreferenceHelper.lastLoginDeviceID, preferences.getString(PreferenceHelper.fcmToken) ?? "");
+      await preferences.setString(PreferenceHelper.lastLoginDeviceName, deviceName);
+      await preferences.setString(PreferenceHelper.lastLoginLatitude, latitude);
+      await preferences.setString(PreferenceHelper.lastLoginLongitude, longitude);
+      await preferences.setString(PreferenceHelper.lastLoginIpAddress, ipv4);
 
       loginRepository.authenticateUser(
         username: username,
@@ -155,7 +166,11 @@ class LoginVM extends BaseModel {
         failedResponse: (success, message) {
           appPrint('------>Login Error : $message');
           buttonLoader.value = false;
-          CommonFunction.showSnackBar(context: context, isError: true, message: message);
+          CommonFunction.showSnackBarLoginPageOnly(
+            context: context,
+            isError: true,
+            message: message,
+          );
         },
       );
     } else if (Platform.isIOS) {
@@ -176,6 +191,13 @@ class LoginVM extends BaseModel {
         log('LoginVM: Ipify ipv4 stack (iOS): $st');
       }
       try {
+        // Persist context for later MarkAttendance calls
+        await preferences.setString(PreferenceHelper.lastLoginDeviceID, preferences.getString(PreferenceHelper.fcmToken) ?? "");
+        await preferences.setString(PreferenceHelper.lastLoginDeviceName, deviceName);
+        await preferences.setString(PreferenceHelper.lastLoginLatitude, latitude);
+        await preferences.setString(PreferenceHelper.lastLoginLongitude, longitude);
+        await preferences.setString(PreferenceHelper.lastLoginIpAddress, ipv4);
+
         loginRepository.authenticateUser(
         username: username,
         password: password,
@@ -217,7 +239,11 @@ class LoginVM extends BaseModel {
         failedResponse: (success, message) {
           appPrint('------>Login Error : $message');
           buttonLoader.value = false;
-          CommonFunction.showSnackBar(context: context, isError: true, message: message);
+          CommonFunction.showSnackBarLoginPageOnly(
+            context: context,
+            isError: true,
+            message: message,
+          );
         },
       );
       } catch (e, st) {
@@ -225,7 +251,7 @@ class LoginVM extends BaseModel {
         log('LoginVM: iOS login stack: $st');
         buttonLoader.value = false;
         if (context.mounted) {
-          CommonFunction.showSnackBar(
+          CommonFunction.showSnackBarLoginPageOnly(
             context: context,
             isError: true,
             message: 'Login could not complete. Please try again.',
@@ -260,16 +286,28 @@ class LoginVM extends BaseModel {
       username: username,
       success: (message, code) {
         if (code == 204) {
-          CommonFunction.showSnackBar(context: context, isError: true, message: message);
+          CommonFunction.showSnackBar(
+            context: context,
+            isError: true,
+            message: message,
+          );
           loading.value = false;
         } else {
-          CommonFunction.showSnackBar(context: context, isError: false, message: message);
+          CommonFunction.showSnackBar(
+            context: context,
+            isError: false,
+            message: message,
+          );
           Navigator.pop(context);
           loading.value = false;
         }
       },
       failed: (message) {
-        CommonFunction.showSnackBar(context: context, isError: true, message: message);
+        CommonFunction.showSnackBar(
+          context: context,
+          isError: true,
+          message: message,
+        );
         loading.value = false;
       },
     );

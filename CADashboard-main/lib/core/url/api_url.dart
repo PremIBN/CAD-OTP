@@ -22,6 +22,8 @@ class Urls{
   static const String LogoutUser = '${Authenticate}LogoutUser';
   static const String forgotPassword = '${Authenticate}RequestForgotPassword';
   static const String AddLoggedInAreaAddress = '${HomeDashboard}AddLoggedInAreaAddress';
+  static const String GetAttendanceDetails = '${HomeDashboard}GetAttendanceDetails';
+  static const String MarkAttendance = '${HomeDashboard}MarkAttendance';
   static addLoggedInAreaAddress({required String tokenID, required String address, required String loginDetailID, required String latitude, required String longitude, required String isLogin})
   => "${HomeDashboard}AddLoggedInAreaAddress?tokenID=$tokenID&address=$address&LoginDetailID=$loginDetailID&latitude=$latitude&longitude=$longitude&IsLogin=$isLogin";
 
@@ -57,6 +59,7 @@ class Urls{
 
   static const String ReceivableData = '${Report}GetAccountReceivableData';
   static const String GetCurrencyWiseTotalAmountDetails = '${Report}GetCurrencyWiseTotalAmountDetails';
+  static const String GetTodaysAttendanceHistory = '${Report}GetTodaysAttendanceHistory';
 
   /// Menu / RBAC
   /// Returns role-filtered menu and submenu items for the authenticated user.

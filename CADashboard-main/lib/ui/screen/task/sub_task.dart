@@ -8,6 +8,7 @@ import 'package:cadashboard/main.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:cadashboard/ui/widget/task_card.dart';
 import 'package:flutter/material.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 
 class SubTasks extends StatefulWidget {
   final String parentTaskID;
@@ -43,7 +44,7 @@ class _SubTasksState extends State<SubTasks> {
       builder: (buildContext, model, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Sub Tasks'),
+            title: Text(ApiTextLocalizer.localize('Sub Tasks', locale: Localizations.localeOf(buildContext))),
           ),
           body: ValueListenableBuilder(
             valueListenable: model.viewLoader,

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cadashboard/core/View_Model/home_vm.dart';
 import 'package:cadashboard/core/repository/menu_repository.dart';
 import 'package:cadashboard/core/common/app_version_service.dart';
+import 'package:cadashboard/core/common/common_function.dart';
 import 'package:cadashboard/core/common/common_loader.dart';
 import 'package:cadashboard/core/common/empty_data.dart';
 import 'package:cadashboard/core/url/api_url.dart';
@@ -13,6 +14,7 @@ import 'package:cadashboard/core/utils/view_state.dart';
 import 'package:cadashboard/main.dart';
 import 'package:cadashboard/ui/screen/about_screen.dart';
 import 'package:cadashboard/ui/screen/account/account_receivable.dart';
+import 'package:cadashboard/ui/screen/app_permissions_settings_screen.dart';
 import 'package:cadashboard/ui/screen/change_password_screen.dart';
 import 'package:cadashboard/ui/screen/login_screen.dart';
 import 'package:cadashboard/ui/screen/notification_screen.dart';
@@ -22,11 +24,18 @@ import 'package:cadashboard/ui/screen/task/view_task.dart';
 import 'package:cadashboard/ui/screen/webview_screen.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
+import 'package:cadashboard/core/model/attendance/attendance_history_row.dart';
 import 'package:cadashboard/ui/widget/greeting_widget.dart';
+import 'package:cadashboard/ui/widget/language_selection_sheet.dart';
 import 'package:cadashboard/ui/widget/screen_loader.dart';
+import 'package:cadashboard/ui/widget/upgrade_app.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
+
+import 'package:cadashboard/l10n/app_localizations.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 
 import '../../core/services/location_service.dart';
 
@@ -51,6 +60,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late Animation<double> scaleAnimation;
 
   ValueNotifier<bool> isLoading = ValueNotifier(false);
+  final ValueNotifier<DateTime> _now = ValueNotifier(DateTime.now());
+  Timer? _clockTimer;
 
   @override
   void initState() {
@@ -62,6 +73,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       LocationService().startMonitoring(context);
     });
     timer();
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _now.value = DateTime.now();
+    });
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    _now.dispose();
+    super.dispose();
   }
 
   timer() async {
@@ -137,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         p0.checkToken(homeContext);
       },
       builder: (buildContext, model, child) {
+        final locale = Localizations.localeOf(homeContext);
         return ValueListenableBuilder(
           valueListenable: isLoading,
           builder: (context, loading, child) {
@@ -177,6 +199,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           )
                         ],
                       ),
+                      IconButton(
+                        icon: Image.asset(
+                          'assets/images/language.png',
+                          width: 22,
+                          height: 22,
+                        ),
+                        onPressed: () {
+                          LanguageSelectionSheet.show(homeContext);
+                        },
+                      ),
                       SizedBox(width: size.width * 0.01,)
                     ],
                   ),
@@ -201,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(height: size.height * 0.02,),
+                                SizedBox(height: size.height * 0.008,),
                                 if(height != 0)AnimatedContainer(
                                   height: height,
                                   duration: const Duration(milliseconds: 300),
@@ -212,7 +244,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                       children: [
                                         Row(
                                           children: [
-                                            Text('Hello, ',style: TextStyle(fontSize: greetingTextSize)),
+                                            Text(
+                                              '${ApiTextLocalizer.localize('Hello', locale: locale)}, ',
+                                              style: TextStyle(fontSize: greetingTextSize),
+                                            ),
                                             GreetingWidget(size: greetingTextSize,)
                                           ],
                                         ),
@@ -221,6 +256,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                       ],
                                     ),
                                   ),
+                                ),
+                                const SizedBox(height: 4),
+                                _AttendanceCard(
+                                  now: _now,
+                                  model: model,
                                 ),
                                 SizedBox(height: size.height * 0.01,),
                                 _HomeMenuGrid(
@@ -291,8 +331,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 ),
 
                                 ListTile(
+                                  leading: const Icon(Icons.settings_suggest_outlined),
+                                  title: const Text('App settings'),
+                                  subtitle: const Text('Notifications & microphone'),
+                                  onTap: () {
+                                    Navigator.pop(homeContext);
+                                    Navigator.push(homeContext, cusNavigate(const AppPermissionsSettingsScreen()));
+                                  },
+                                ),
+
+                                ListTile(
                                   leading: const Icon(Icons.lock_outline),
-                                  title: const Text('Change Password'),
+                                  title: Text(ApiTextLocalizer.localize('Change Password', locale: locale)),
                                   onTap: () {
                                     Navigator.pop(homeContext);
                                     Navigator.push(homeContext, cusNavigate(const ChangePasswordScreen()));
@@ -301,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                                 ListTile(
                                   leading: const Icon(Icons.info_outline_rounded),
-                                  title: const Text('About us'),
+                                  title: Text(ApiTextLocalizer.localize('About us', locale: locale)),
                                   onTap: () {
                                     Navigator.pop(homeContext);
                                     Navigator.push(homeContext, cusNavigate(const AboutUsScreen()));
@@ -310,27 +360,29 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                                 ListTile(
                                   leading: Image.asset(AppImages.privacyPolicy,width: 27),
-                                  title: const Text('Privacy Policy'),
+                                  title: Text(ApiTextLocalizer.localize('Privacy Policy', locale: locale)),
                                   onTap: () {
                                     Navigator.pop(homeContext);
-                                    Navigator.push(homeContext, cusNavigate(const WebviewScreen(title: 'Privacy Policy', url: Urls.privacy_policy)));
+                                    final title = ApiTextLocalizer.localize('Privacy Policy', locale: locale);
+                                    Navigator.push(homeContext, cusNavigate(WebviewScreen(title: title, url: Urls.privacy_policy)));
                                   },
                                 ),
 
                                 ListTile(
                                   contentPadding: const EdgeInsets.only(left: 22),
                                   leading: Image.asset(AppImages.termsCondition,width: 23),
-                                  title: const Text('Terms & Condition'),
+                                  title: Text(ApiTextLocalizer.localize('Terms & Condition', locale: locale)),
                                   onTap: () {
                                     Navigator.pop(homeContext);
-                                    Navigator.push(homeContext, cusNavigate(const WebviewScreen(title: 'Terms & Condition', url: Urls.termsAndCondition)));
+                                    final title = ApiTextLocalizer.localize('Terms & Condition', locale: locale);
+                                    Navigator.push(homeContext, cusNavigate(WebviewScreen(title: title, url: Urls.termsAndCondition)));
                                   },
                                 ),
 
                                 Divider(height: size.height * 0.03,),
                                 ListTile(
                                   leading: const Icon(Icons.logout,color: Colors.red),
-                                  title: const Text('Logout',style: TextStyle(color: Colors.red)),
+                                  title: Text(ApiTextLocalizer.localize('Logout', locale: locale),style: const TextStyle(color: Colors.red)),
                                   onTap: () {
                                     isLoading.value = true;
                                     Navigator.pop(homeContext);
@@ -340,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                                 ListTile(
                                   leading: const Icon(Icons.delete_outline,color: Colors.red),
-                                  title: const Text('Delete My Account',style: TextStyle(color: Colors.red)),
+                                  title: Text(ApiTextLocalizer.localize('Delete My Account', locale: locale),style: const TextStyle(color: Colors.red)),
                                   onTap: () {
                                     Navigator.pop(homeContext);
                                     model.dialog(homeContext,'Delete My Account ?','Could you please confirm that you want to permanently delete your account?');
@@ -366,6 +418,415 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
+}
+
+class _AttendanceCard extends StatelessWidget {
+  final ValueNotifier<DateTime> now;
+  final HomeVM model;
+
+  const _AttendanceCard({required this.now, required this.model});
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final dateFmt = DateFormat('dd MMM yyyy');
+    final dayFmt = DateFormat('EEEE');
+    final timeFmt = DateFormat('hh:mm a');
+    const actionButtonWidth = 108.0;
+
+    return Card(
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    ApiTextLocalizer.localize('Attendance', locale: locale),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await model.loadAttendanceHistory(DateTime.now());
+                    if (!context.mounted) return;
+                    Navigator.push(
+                      context,
+                      cusNavigate(
+                        AttendanceSwipesScreen(
+                          model: model,
+                          locale: locale,
+                          timeFmt: timeFmt,
+                          dateFmt: dateFmt,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    ApiTextLocalizer.localize('View Swipes', locale: locale),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ValueListenableBuilder<DateTime>(
+              valueListenable: now,
+              builder: (context, n, _) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _kv(
+                        ApiTextLocalizer.localize("Today's Date", locale: locale),
+                        dateFmt.format(n),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _kv(
+                        ApiTextLocalizer.localize("Today's Day", locale: locale),
+                        dayFmt.format(n),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _kv(
+                        ApiTextLocalizer.localize('Current Time', locale: locale),
+                        timeFmt.format(n),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            ValueListenableBuilder<bool>(
+              valueListenable: model.attendanceLoading,
+              builder: (context, loading, _) {
+                return ValueListenableBuilder<bool>(
+                  valueListenable: model.attendanceSignedIn,
+                  builder: (context, signedIn, _) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ValueListenableBuilder<DateTime?>(
+                            valueListenable: model.attendanceSignInAt,
+                            builder: (context, inAt, _) {
+                              final txt = inAt == null ? '-' : timeFmt.format(inAt);
+                              return _kv(ApiTextLocalizer.localize('First Sign In', locale: locale), txt);
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: ValueListenableBuilder<DateTime?>(
+                            valueListenable: model.attendanceSignOutAt,
+                            builder: (context, outAt, _) {
+                              final txt = outAt == null ? '-' : timeFmt.format(outAt);
+                              return _kv(ApiTextLocalizer.localize('Last Sign Out', locale: locale), txt);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: actionButtonWidth,
+                          height: 40,
+                          child: loading
+                              ? const Center(
+                                  child: SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                )
+                              // LastActivity == 1 => show Sign Out button
+                              // LastActivity == 0 => show Sign In button
+                              : (signedIn
+                                  ? FilledButton(
+                                      onPressed: () async {
+                                        await model.attendanceSignOut(context);
+                                      },
+                                      child: Text(
+                                        ApiTextLocalizer.localize('Sign Out', locale: locale),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.visible,
+                                        softWrap: false,
+                                      ),
+                                    )
+                                  : FilledButton(
+                                      onPressed: () async {
+                                        await model.attendanceSignIn(context);
+                                      },
+                                      child: Text(
+                                        ApiTextLocalizer.localize('Sign In', locale: locale),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.visible,
+                                        softWrap: false,
+                                      ),
+                                    )),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _kv(String k, String v) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(k, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+        const SizedBox(height: 2),
+        Text(
+          v,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+}
+
+class AttendanceSwipesScreen extends StatelessWidget {
+  final HomeVM model;
+  final Locale locale;
+  final DateFormat timeFmt;
+  final DateFormat dateFmt;
+
+  const AttendanceSwipesScreen({
+    super.key,
+    required this.model,
+    required this.locale,
+    required this.timeFmt,
+    required this.dateFmt,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('View Swipes'),
+      ),
+      body: _AttendanceSwipesSheet(
+        model: model,
+        locale: locale,
+        timeFmt: timeFmt,
+        dateFmt: dateFmt,
+      ),
+    );
+  }
+}
+
+class _AttendanceSwipesSheet extends StatefulWidget {
+  final HomeVM model;
+  final Locale locale;
+  final DateFormat timeFmt;
+  final DateFormat dateFmt;
+
+  const _AttendanceSwipesSheet({
+    required this.model,
+    required this.locale,
+    required this.timeFmt,
+    required this.dateFmt,
+  });
+
+  @override
+  State<_AttendanceSwipesSheet> createState() => _AttendanceSwipesSheetState();
+}
+
+class _AttendanceSwipesSheetState extends State<_AttendanceSwipesSheet> {
+  int _recordsPerPage = 50;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+        child: ValueListenableBuilder<List<AttendanceHistoryRow>>(
+          valueListenable: widget.model.attendanceHistory,
+          builder: (context, historyRows, _) {
+            final pagedRows = historyRows.take(_recordsPerPage).toList();
+            return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Today\'s Swipes ( ${widget.dateFmt.format(DateTime.now())} )',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFC57B33),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.black12),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<int>(
+                                  value: _recordsPerPage,
+                                  isDense: true,
+                                  items: const [10, 20, 30, 40, 50]
+                                      .map(
+                                        (count) => DropdownMenuItem<int>(
+                                          value: count,
+                                          child: Text('$count pages'),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    setState(() => _recordsPerPage = value);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black12),
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(minWidth: 700),
+                                child: SingleChildScrollView(
+                                  child: DataTable(
+                                    headingRowColor: WidgetStateProperty.all(
+                                      const Color(0xFFE8EEF6),
+                                    ),
+                                    columnSpacing: 36,
+                                    columns: [
+                                      DataColumn(label: Text('Sr No')),
+                                      DataColumn(label: Text('Time')),
+                                      DataColumn(
+                                        label: Text(
+                                          'Sign In /\nSign Out',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                      DataColumn(label: Text('Login Mode')),
+                                      DataColumn(label: Text('Address')),
+                                    ],
+                                    rows: pagedRows.isEmpty
+                                        ? [
+                                            DataRow(
+                                              cells: [
+                                                const DataCell(SizedBox.shrink()),
+                                                DataCell(Text('No Records Found.')),
+                                                const DataCell(SizedBox.shrink()),
+                                                const DataCell(SizedBox.shrink()),
+                                                const DataCell(SizedBox.shrink()),
+                                              ],
+                                            ),
+                                          ]
+                                        : pagedRows
+                                            .map(
+                                              (row) => DataRow(
+                                                cells: [
+                                                  DataCell(Text(row.srNo.toString())),
+                                                  DataCell(Text(row.time)),
+                                                  DataCell(Text(row.signInOrSignOut)),
+                                                  DataCell(Text(row.loginMode)),
+                                                  DataCell(_addressCell(row.address)),
+                                                ],
+                                              ),
+                                            )
+                                            .toList(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _addressCell(String address) {
+    final trimmed = address.trim();
+    if (trimmed.isEmpty || trimmed == '-') {
+      return const Text('-');
+    }
+
+    const previewLen = 28;
+    final isLong = trimmed.length > previewLen;
+    final preview = isLong ? '${trimmed.substring(0, previewLen)}...' : trimmed;
+
+    if (!isLong) {
+      return Text(preview);
+    }
+
+    return SizedBox(
+      width: 220,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              preview,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _showAddressDialog(trimmed),
+            child: const Text(
+              'Read more',
+              style: TextStyle(
+                color: AppColor.background,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddressDialog(String address) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Address'),
+          content: SingleChildScrollView(
+            child: Text(address),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 /// Renders only menus returned by the menu API (called after login with tokenID).
@@ -405,11 +866,12 @@ class _HomeMenuGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (menuItems.isEmpty) {
+      final locale = Localizations.localeOf(context);
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
           child: Text(
-            'No Module Assigned',
+            ApiTextLocalizer.localize('No Module Assigned', locale: locale),
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
@@ -458,7 +920,20 @@ class _HomeMenuGrid extends StatelessWidget {
 
   Widget _menuTile(BuildContext context, MenuItem item, VoidCallback onNavigate) {
     final url = item.url.toLowerCase();
-    final name = item.name;
+    final locale = Localizations.localeOf(context);
+    final name = () {
+      if (url.contains('task')) return ApiTextLocalizer.localize('Task', locale: locale);
+      if (url.contains('client') || url.contains('organisation') || url.contains('org')) {
+        return ApiTextLocalizer.localize('Client', locale: locale);
+      }
+      if (url.contains('account') || url.contains('receivable') || url.contains('ar')) {
+        return ApiTextLocalizer.localize('Account Receivable', locale: locale);
+      }
+      if (url.contains('document') || url.contains('doc')) return ApiTextLocalizer.localize('Document', locale: locale);
+      // Unknown module from backend: show transliteration instead of raw English
+      // when user selected a non-English app language.
+      return ApiTextLocalizer.localize(item.name, locale: locale);
+    }();
 
     if (url.contains('task')) {
       return HomeGird(

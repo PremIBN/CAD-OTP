@@ -7,6 +7,7 @@ import 'package:cadashboard/core/utils/view_state.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:intl/intl.dart';
 
 class NotificationScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return Scaffold(
 
           appBar: AppBar(
-            title: const Text('Notification',style: TextStyle()),
+            title: Text(ApiTextLocalizer.localize('Notification', locale: Localizations.localeOf(buildContext)),style: const TextStyle()),
             actions: [
               IconButton(
                 icon: const Icon(CupertinoIcons.delete),

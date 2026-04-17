@@ -1,4 +1,5 @@
 import 'package:cadashboard/core/utils/colors.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:flutter/material.dart';
 
 class ClientCard extends StatelessWidget {
@@ -43,13 +44,13 @@ class ClientCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if(clientname != null && clientname != "")const Text('Name'),
+                      if(clientname != null && clientname != "")Text(ApiTextLocalizer.localize('Name', locale: Localizations.localeOf(context))),
                       // if(email != null && email != "")Text('Email'),
                       // if(mobile != null && mobile != "")Text('Mobile'),
                       // if(pan != null && pan != "")Text('PAN'),
-                      if(fileNumber != null && fileNumber != "")const Text('File Number'),
-                      if(branchName != null && branchName != "")const Text('Branch Name'),
-                      if(clientType != null && clientType != "")const Text('Client Type'),
+                      if(fileNumber != null && fileNumber != "")Text(ApiTextLocalizer.localize('File Number', locale: Localizations.localeOf(context))),
+                      if(branchName != null && branchName != "")Text(ApiTextLocalizer.localize('Branch Name', locale: Localizations.localeOf(context))),
+                      if(clientType != null && clientType != "")Text(ApiTextLocalizer.localize('Client Type', locale: Localizations.localeOf(context))),
                       // if(groupName != null && groupName != "")Text('Group Name'),
                     ],
                   ),

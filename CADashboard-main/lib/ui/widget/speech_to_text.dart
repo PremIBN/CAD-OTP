@@ -1,7 +1,9 @@
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
+import 'package:cadashboard/core/utils/preference_helper.dart';
 import 'package:cadashboard/main.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -64,6 +66,18 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
   }
 
   Future<void> _requestPermissions() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool(PreferenceHelper.appMicrophoneUserEnabled) ?? true)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Microphone is turned off in App settings.'),
+        ),
+      );
+      Navigator.pop(context);
+      return;
+    }
+
     final microPhoneStatus = await Permission.microphone.request();
     if (microPhoneStatus.isDenied) {
       _showPermissionSnackBar(microPhoneStatus);

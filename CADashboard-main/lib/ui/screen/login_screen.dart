@@ -8,10 +8,10 @@ import 'package:cadashboard/core/utils/stateless_base_view.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:cadashboard/ui/widget/custom_textfield.dart';
+import 'package:cadashboard/ui/widget/upgrade_app.dart';
 import 'package:cadashboard/ui/screen/forgot_password.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:upgrader/upgrader.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 }
                 clearLoaderIfNeeded();
                 if (buildContext.mounted) {
-                  CommonFunction.showSnackBar(
+                  CommonFunction.showSnackBarLoginPageOnly(
                     context: buildContext,
                     isError: true,
                     message: 'Location permission is required to sign in.',
@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
               }
               clearLoaderIfNeeded();
               if (buildContext.mounted) {
-                CommonFunction.showSnackBar(
+                CommonFunction.showSnackBarLoginPageOnly(
                   context: buildContext,
                   isError: true,
                   message: 'Location permission is required to sign in.',
@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
               }
               clearLoaderIfNeeded();
               if (buildContext.mounted) {
-                CommonFunction.showSnackBar(
+                CommonFunction.showSnackBarLoginPageOnly(
                   context: buildContext,
                   isError: true,
                   message: 'Unable to get location. Please enable GPS and try again.',
@@ -162,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
           } catch (e) {
             clearLoaderIfNeeded();
             if (buildContext.mounted) {
-              CommonFunction.showSnackBar(
+              CommonFunction.showSnackBarLoginPageOnly(
                 context: buildContext,
                 isError: true,
                 message: 'Sign-in could not start. Please try again.',
@@ -173,97 +173,105 @@ class _LoginScreenState extends State<LoginScreen> {
         }
 
 
-        return Scaffold(
-          body: UpgradeApp(
-            child: SafeArea(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(height: size.height * 0.15),
-                      Image.asset(AppImages.logoText,width: 300,),
-                      SizedBox(height: size.height * 0.1),
-                      Form(
-                        key: formKey,
-                        child: Column(
-                          children: [
-                            CusField(
-                              controller: model.usernameController,
-                              hint: 'Enter Username',
-                              icon: const Icon(Icons.person_outline_outlined),
-                              onValidator: (value) {
-                                return model.usernameController.text.isEmpty
-                                    ? 'Please enter email.'
-                                    : null;
-                              },
-                              onChanged: (value) {
-                                value.isEmpty ? !formKey.currentState!.validate() : formKey.currentState!.validate();
-                              },
-                            ),
-                            SizedBox(height: size.height * 0.03),
-                            ValueListenableBuilder(
-                              valueListenable: model.visible,
-                              builder: (context, value, child) {
-                                return CusField(
-                                  controller: model.passwordController,
-                                  visible: value,
-                                  hint: 'Enter Password',
-                                  icon: const Icon(Icons.password),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(value ? Icons.visibility_off : Icons.visibility),
-                                    onPressed: () {
-                                      value ? model.visible.value=false : model.visible.value=true;
-                                    },
-                                  ),
+        // Login stays English / LTR regardless of app language (CusField/CusBtn use locale for ApiTextLocalizer).
+        return Localizations.override(
+          context: buildContext,
+          locale: const Locale('en'),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Scaffold(
+              body: UpgradeApp(
+                child: SafeArea(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(height: size.height * 0.15),
+                          Image.asset(AppImages.logoText,width: 300,),
+                          SizedBox(height: size.height * 0.1),
+                          Form(
+                            key: formKey,
+                            child: Column(
+                              children: [
+                                CusField(
+                                  controller: model.usernameController,
+                                  hint: 'Enter Username',
+                                  icon: const Icon(Icons.person_outline_outlined),
                                   onValidator: (value) {
-                                    return model.passwordController.text.isEmpty ? 'Please enter password.' : null;
+                                    return model.usernameController.text.isEmpty
+                                        ? 'Please enter email.'
+                                        : null;
                                   },
                                   onChanged: (value) {
                                     value.isEmpty ? !formKey.currentState!.validate() : formKey.currentState!.validate();
                                   },
-                                );
-                              },
-                            )
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: size.height * 0.006),
-                      Align(
-                        alignment: FractionalOffset.centerRight,
-                        child: TextButton(
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColor.background,
+                                ),
+                                SizedBox(height: size.height * 0.03),
+                                ValueListenableBuilder(
+                                  valueListenable: model.visible,
+                                  builder: (context, value, child) {
+                                    return CusField(
+                                      controller: model.passwordController,
+                                      visible: value,
+                                      hint: 'Enter Password',
+                                      icon: const Icon(Icons.password),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(value ? Icons.visibility_off : Icons.visibility),
+                                        onPressed: () {
+                                          value ? model.visible.value=false : model.visible.value=true;
+                                        },
+                                      ),
+                                      onValidator: (value) {
+                                        return model.passwordController.text.isEmpty ? 'Please enter password.' : null;
+                                      },
+                                      onChanged: (value) {
+                                        value.isEmpty ? !formKey.currentState!.validate() : formKey.currentState!.validate();
+                                      },
+                                    );
+                                  },
+                                )
+                              ],
                             ),
                           ),
-                          onPressed: () {
-                            Navigator.push(context, cusNavigate(const ForgotPasswore()));
-                          },
-                        ),
-                      ),
-                      SizedBox(height: size.height * 0.006),
-                      ValueListenableBuilder(
-                        valueListenable: model.buttonLoader,
-                        builder: (context, value, child) {
-                          return CusBtn(
-                            btnName: 'Login',
-                            loading: value,
-                            onTap: () async {
-                              if (formKey.currentState!.validate()) {
-                                model.buttonLoader.value = true;
-                                await requestLocationPermission();
-                              }
+                          SizedBox(height: size.height * 0.006),
+                          Align(
+                            alignment: FractionalOffset.centerRight,
+                            child: TextButton(
+                              child: const Text(
+                                'Forgot Password?',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColor.background,
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.push(context, cusNavigate(const ForgotPasswore()));
+                              },
+                            ),
+                          ),
+                          SizedBox(height: size.height * 0.006),
+                          ValueListenableBuilder(
+                            valueListenable: model.buttonLoader,
+                            builder: (context, value, child) {
+                              return CusBtn(
+                                btnName: 'Login',
+                                loading: value,
+                                onTap: () async {
+                                  if (formKey.currentState!.validate()) {
+                                    model.buttonLoader.value = true;
+                                    await requestLocationPermission();
+                                  }
+                                },
+                              );
                             },
-                          );
-                        },
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -275,20 +283,4 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class UpgradeApp extends StatelessWidget {
-  final Widget child;
-
-  const UpgradeApp({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return UpgradeAlert(
-      dialogStyle: Platform.isIOS ? UpgradeDialogStyle.cupertino : UpgradeDialogStyle.material,
-      barrierDismissible: false,
-      showLater: false,
-      showIgnore: false,
-      upgrader: Upgrader(),
-      child: child,
-    );
-  }
-}
+// UpgradeApp moved to lib/ui/widget/upgrade_app.dart

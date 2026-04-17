@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import '../utils/colors.dart';
 // ignore: depend_on_referenced_packages, library_prefixes
 import 'package:html/parser.dart' as htmlParser;
@@ -8,7 +9,7 @@ class CommonFunction {
   static Widget errorTextWidget(String title) {
     return Center(
       child: Text(
-        title,
+        ApiTextLocalizer.localize(title),
         style: const TextStyle(
           color: AppColor.background,
           fontWeight: FontWeight.w500,
@@ -22,15 +23,51 @@ class CommonFunction {
     return htmlParser.parse(htmlText).toString();
   }
 
-  static void showSnackBar({required BuildContext context, required bool isError, required String message}) {
+  static void showSnackBar({
+    required BuildContext context,
+    required bool isError,
+    required String message,
+    bool localizeMessage = true,
+  }) {
     if (!context.mounted) return;
+    final msg = localizeMessage
+        ? ApiTextLocalizer.localize(message, locale: Localizations.localeOf(context))
+        : message;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       duration: const Duration(seconds: 3),
       backgroundColor: isError ? Colors.red : AppColor.logoColor,
       content: Text(
-        message,
+        msg,
         style: const TextStyle(color: Colors.white),
       )),
+    );
+  }
+
+  /// Use only on [LoginScreen] / sign-in flow: never transliterates or translates text.
+  static void showSnackBarLoginPageOnly({
+    required BuildContext context,
+    required bool isError,
+    required String message,
+  }) {
+    showSnackBar(
+      context: context,
+      isError: isError,
+      message: message,
+      localizeMessage: false,
+    );
+  }
+
+  /// Authentication/snackbar messages that must always remain English regardless of selected app language.
+  static void showSnackBarAuthEnglishOnly({
+    required BuildContext context,
+    required bool isError,
+    required String message,
+  }) {
+    showSnackBar(
+      context: context,
+      isError: isError,
+      message: message,
+      localizeMessage: false,
     );
   }
 
@@ -39,23 +76,24 @@ class CommonFunction {
       context: context,
       barrierDismissible: false,
       builder: (context) {
+        final locale = Localizations.localeOf(context);
         return AlertDialog(
-          title: Text(title),
-          content: Text(subTitle, style: const TextStyle(fontSize: 15)),
+          title: Text(ApiTextLocalizer.localize(title, locale: locale)),
+          content: Text(ApiTextLocalizer.localize(subTitle, locale: locale), style: const TextStyle(fontSize: 15)),
           actions: [
             TextButton(
               style: ButtonStyle(
                 backgroundColor: WidgetStatePropertyAll(AppColor.background.withValues(alpha: (0.1))),
               ),
               onPressed: onYes,
-              child: const Text('Yes'),
+              child: Text(ApiTextLocalizer.localize('Yes', locale: locale)),
             ),
             TextButton(
               style: const ButtonStyle(
                 backgroundColor: WidgetStatePropertyAll(AppColor.background),
               ),
               onPressed: onNo,
-              child: const Text('No', style: TextStyle(color: Colors.white)),
+              child: Text(ApiTextLocalizer.localize('No', locale: locale), style: const TextStyle(color: Colors.white)),
             )
           ],
         );

@@ -4,6 +4,7 @@ import 'package:cadashboard/core/utils/utils.dart';
 import 'package:cadashboard/main.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:cadashboard/ui/widget/custom_textfield.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:flutter/material.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       builder: (buildContext, model, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Change Password'),
+            title: Text(ApiTextLocalizer.localize('Change Password', locale: Localizations.localeOf(buildContext))),
           ),
           body: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -39,11 +40,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     SizedBox(height: size.height * 0.05,),
                     CusField(
                       controller: model.oldController,
-                      hint: 'Old Password',
+                      hint: ApiTextLocalizer.localize('Old Password', locale: Localizations.localeOf(buildContext)),
                       icon: const Icon(Icons.password),
                       visible: !model.visiable1,
                       onValidator: (value) {
-                        return model.oldController.text.isEmpty ? 'Old password is empty' : null;
+                        return model.oldController.text.isEmpty
+                            ? ApiTextLocalizer.localize('Old password is empty', locale: Localizations.localeOf(buildContext))
+                            : null;
                       },
                       suffixIcon: IconButton(
                         icon: Icon(model.visiable1 ? Icons.visibility : Icons.visibility_off),
@@ -56,7 +59,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     SizedBox(height: size.height * 0.03,),
                     CusField(
                       controller: model.newController,
-                      hint: 'New Password',
+                      hint: ApiTextLocalizer.localize('New Password', locale: Localizations.localeOf(buildContext)),
                       icon: const Icon(Icons.password),
                       visible: !model.visiable2,
                       suffixIcon: IconButton(
@@ -68,9 +71,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       ),
                       onValidator: (value) {
                         appPrint(Utils.isPassword(model.newController.text));
-                        return model.newController.text.isEmpty ? 'New password is empty'
+                        return model.newController.text.isEmpty
+                            ? ApiTextLocalizer.localize('New password is empty', locale: Localizations.localeOf(buildContext))
                             : Utils.isPassword(model.newController.text) == false
-                              ? 'Make one Capital letter, one small letter, one number and 1 special character compulsory'
+                              ? ApiTextLocalizer.localize(
+                                  'Make one Capital letter, one small letter, one number and 1 special character compulsory',
+                                  locale: Localizations.localeOf(buildContext),
+                                )
                               : null;
                       },
                     ),
@@ -79,7 +86,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       valueListenable: model.buttonLoader,
                       builder: (context, value, child) {
                         return CusBtn(
-                          btnName: 'Submit',
+                          btnName: ApiTextLocalizer.localize('Submit', locale: Localizations.localeOf(buildContext)),
                           loading: value,
                           onTap: () {
                             model.buttonLoader.value = true;

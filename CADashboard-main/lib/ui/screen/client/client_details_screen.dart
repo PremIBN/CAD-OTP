@@ -7,6 +7,7 @@ import 'package:cadashboard/ui/screen/client/add_client_screen.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:flutter/material.dart';
 import 'package:cadashboard/core/repository/menu_repository.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 
 class ClientDetails extends StatefulWidget{
 
@@ -51,10 +52,11 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
 
   // ignore: non_constant_identifier_names
   Widget Details(String label, String value) {
+    final locale = Localizations.localeOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("$label,",style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 15)),
+        Text("${ApiTextLocalizer.localize(label, locale: locale)},",style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 15)),
         text(value),
       ],
     );
@@ -68,17 +70,18 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
           p0.clientDetails(context, widget.orgID);
         },
         builder: (buildContext, model, child) {
+          final locale = Localizations.localeOf(buildContext);
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Client Details'),
+              title: Text(ApiTextLocalizer.localize('Client Details', locale: locale)),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () {
                     if (!MenuRepository.canUpdateClient) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('You do not have permission to edit'),
+                        SnackBar(
+                          content: Text(ApiTextLocalizer.localize('You do not have permission to edit', locale: locale)),
                         ),
                       );
                       return;
@@ -104,7 +107,7 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
               children: [
                 TabBar(
                   controller: tabController,
-                  tabs: tabs.map((e) => Tab(text: e,)).toList(),
+                  tabs: tabs.map((e) => Tab(text: ApiTextLocalizer.localize(e.toString(), locale: locale))).toList(),
                 ),
 
                 Expanded(

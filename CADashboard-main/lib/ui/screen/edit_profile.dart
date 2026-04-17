@@ -1,4 +1,5 @@
 import 'package:cadashboard/core/common/common_function.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:cadashboard/core/utils/images.dart';
 import 'package:cadashboard/main.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
@@ -25,7 +26,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(ApiTextLocalizer.localize('Edit Profile', locale: Localizations.localeOf(context))),
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -73,16 +74,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 children: [
                   CusField(
-                    hint: 'Username',
+                    hint: ApiTextLocalizer.localize('Username', locale: Localizations.localeOf(context)),
                     controller: usernameController,
                     icon: const Icon(CupertinoIcons.person),
                     onValidator: (value) {
-                      return usernameController.text.isEmpty ? 'Please enter username' : null;
+                      return usernameController.text.isEmpty
+                          ? ApiTextLocalizer.localize('Please enter username', locale: Localizations.localeOf(context))
+                          : null;
                     },
                   ),
                   SizedBox(height: size.height * 0.04,),
                   CusField(
-                    hint: 'Email',
+                    hint: ApiTextLocalizer.localize('Email', locale: Localizations.localeOf(context)),
                     controller: emailController,
                     icon: const Icon(Icons.email_outlined),
                     readOnly: true,
@@ -94,12 +97,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 40),
 
             CusBtn(
-              btnName: 'Submit',
+              btnName: ApiTextLocalizer.localize('Submit', locale: Localizations.localeOf(context)),
               onTap: () {
                 !formKey.currentState!.validate();
                 if(formKey.currentState!.validate()){
                   Navigator.pop(context);
-                  CommonFunction.showSnackBar(context: context, isError: false, message: 'Profile update successfully');
+                  CommonFunction.showSnackBar(
+                    context: context,
+                    isError: false,
+                    message: ApiTextLocalizer.localize('Profile update successfully', locale: Localizations.localeOf(context)),
+                  );
                 }else{
                   appPrint('No');
                 }
@@ -126,14 +133,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ListTile(
 
                     leading: const Icon(CupertinoIcons.camera_fill),
-                    title: const Text('Camera'),
+                    title: Text(ApiTextLocalizer.localize('Camera', locale: Localizations.localeOf(context))),
                     onTap: () {
                       Navigator.pop(context);
                     },
                   ),
                   ListTile(
                     leading: Image.asset(AppImages.gallery,width: 25),
-                    title: const Text('Gallery'),
+                    title: Text(ApiTextLocalizer.localize('Gallery', locale: Localizations.localeOf(context))),
                     onTap: () {
                       Navigator.pop(context);
                     },

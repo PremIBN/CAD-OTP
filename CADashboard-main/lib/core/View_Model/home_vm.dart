@@ -12,12 +12,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cadashboard/core/common/common_function.dart';
 import 'package:cadashboard/core/utils/preference_helper.dart';
 import 'package:cadashboard/core/repository/menu_repository.dart';
+import 'package:cadashboard/core/repository/attendance_repository.dart';
+import 'package:cadashboard/core/model/attendance/attendance_history_row.dart';
 
 class HomeVM extends BaseModel {
   ValueNotifier<ViewState> viewLoader = ValueNotifier(ViewState.loading);
   ValueNotifier<int> notification = ValueNotifier(0);
 
   final MenuRepository _menuRepository = MenuRepository();
+  final AttendanceRepository attendanceRepo = AttendanceRepository();
+
+  // Attendance state (for Attendance card on Home)
+  ValueNotifier<bool> attendanceLoading = ValueNotifier(false);
+  ValueNotifier<bool> attendanceSignedIn = ValueNotifier(false);
+  ValueNotifier<DateTime?> attendanceSignInAt = ValueNotifier(null);
+  ValueNotifier<DateTime?> attendanceSignOutAt = ValueNotifier(null);
+  ValueNotifier<List<AttendanceHistoryRow>> attendanceHistory =
+      ValueNotifier<List<AttendanceHistoryRow>>([]);
 
   /// Latest session tokenID to use for menu and token checks.
   /// When coming from a fresh login, this is set from the login response
@@ -66,6 +77,7 @@ class HomeVM extends BaseModel {
           notifyListeners();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (context.mounted) getNotification(context);
+            if (context.mounted) loadTodayAttendance(context);
           });
         } catch (e, st) {
           appPrint('Token success callback error: $e $st');
@@ -76,10 +88,11 @@ class HomeVM extends BaseModel {
       failedResponse: (success, message, statusCode) {
         appPrint('Token : $message');
         if (context.mounted) {
-          CommonFunction.showSnackBar(
-              context: context,
-              isError: true,
-              message: 'Your Session has been Expired');
+          CommonFunction.showSnackBarAuthEnglishOnly(
+            context: context,
+            isError: true,
+            message: 'Your Session has been Expired',
+          );
           Navigator.pushAndRemoveUntil(
               context, cusNavigate(const LoginScreen()), (route) => false);
         }
@@ -111,6 +124,7 @@ class HomeVM extends BaseModel {
           viewLoader.value = ViewState.success;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (context.mounted) getNotification(context);
+            if (context.mounted) loadTodayAttendance(context);
           });
         } catch (e, st) {
           appPrint('Token success callback error: $e $st');
@@ -122,10 +136,11 @@ class HomeVM extends BaseModel {
       failedResponse: (success, message, statusCode) {
         appPrint('Token : $message');
         if (context.mounted) {
-          CommonFunction.showSnackBar(
-              context: context,
-              isError: true,
-              message: 'Your Session has been Expired');
+          CommonFunction.showSnackBarAuthEnglishOnly(
+            context: context,
+            isError: true,
+            message: 'Your Session has been Expired',
+          );
           Navigator.pushAndRemoveUntil(
               context, cusNavigate(const LoginScreen()), (route) => false);
         }
@@ -134,6 +149,102 @@ class HomeVM extends BaseModel {
       },
     );
     return completer.future;
+  }
+
+  Future<void> loadTodayAttendance(BuildContext context) async {
+    if (attendanceLoading.value) return;
+    attendanceLoading.value = true;
+    try {
+      final today = await attendanceRepo.getTodayAttendance();
+      attendanceSignedIn.value = today.isSignedIn;
+      attendanceSignInAt.value = today.signInAt;
+      attendanceSignOutAt.value = today.signOutAt;
+    } catch (e) {
+      // Best effort; don't block home if attendance fails
+    } finally {
+      attendanceLoading.value = false;
+    }
+  }
+
+  Future<void> attendanceSignIn(BuildContext context) async {
+    if (attendanceLoading.value) return;
+    attendanceLoading.value = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final tokenId = prefs.getString(PreferenceHelper.userToken) ?? '';
+      final loginDetailId = prefs.getString(PreferenceHelper.loginDetailID) ?? '';
+      final res = await attendanceRepo.signIn(tokenId: tokenId, loginDetailId: loginDetailId);
+      attendanceSignedIn.value = res.isSignedIn;
+      attendanceSignInAt.value = res.signInAt;
+      attendanceSignOutAt.value = res.signOutAt;
+    } catch (e) {
+      await _syncAttendanceStateSilently();
+      if (context.mounted) {
+        CommonFunction.showSnackBar(
+          context: context,
+          isError: false,
+          message: e.toString().replaceFirst('Exception: ', ''),
+        );
+      }
+    } finally {
+      attendanceLoading.value = false;
+    }
+  }
+
+  Future<void> attendanceSignOut(BuildContext context) async {
+    if (attendanceLoading.value) return;
+    attendanceLoading.value = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final tokenId = prefs.getString(PreferenceHelper.userToken) ?? '';
+      final loginDetailId = prefs.getString(PreferenceHelper.loginDetailID) ?? '';
+      final res = await attendanceRepo.signOut(tokenId: tokenId, loginDetailId: loginDetailId);
+      attendanceSignedIn.value = res.isSignedIn;
+      attendanceSignInAt.value = res.signInAt;
+      attendanceSignOutAt.value = res.signOutAt;
+    } catch (e) {
+      await _syncAttendanceStateSilently();
+      if (context.mounted) {
+        final msg = e.toString().replaceFirst('Exception: ', '');
+        CommonFunction.showSnackBar(
+          context: context,
+          isError: false,
+          message: msg,
+        );
+      }
+    } finally {
+      attendanceLoading.value = false;
+    }
+  }
+
+  Future<void> _syncAttendanceStateSilently() async {
+    try {
+      final today = await attendanceRepo.getTodayAttendance();
+      attendanceSignedIn.value = today.isSignedIn;
+      attendanceSignInAt.value = today.signInAt;
+      attendanceSignOutAt.value = today.signOutAt;
+    } catch (_) {
+      // Best effort sync; ignore failures in catch path.
+    }
+  }
+
+  bool _isAttendanceAlreadyMarkedMessage(String message) {
+    final m = message.toLowerCase();
+    return m.contains('attendance is marked') ||
+        m.contains('attendance already marked') ||
+        m.contains('already marked');
+  }
+
+  Future<void> loadAttendanceHistory(DateTime date) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final tokenId = prefs.getString(PreferenceHelper.userToken) ?? '';
+      final rows =
+          await attendanceRepo.getTodaysAttendanceHistory(tokenId: tokenId, date: date);
+      attendanceHistory.value = rows;
+    } catch (_) {
+      attendanceHistory.value = [];
+    }
   }
 
   Future<void> getNotification(BuildContext context) async {
@@ -187,7 +298,13 @@ class HomeVM extends BaseModel {
               response: (message) async {
                 SharedPreferences preferences = await SharedPreferences.getInstance();
                 if (message == '$title Successfully') {
-                  CommonFunction.showSnackBar(context: context, isError: false, message: message);
+                  // Logout success message must always be English.
+                  CommonFunction.showSnackBar(
+                    context: context,
+                    isError: false,
+                    message: message,
+                    localizeMessage: false,
+                  );
                   preferences.setString(PreferenceHelper.userToken, 'null');
                   preferences.setBool(PreferenceHelper.isSignIn, false);
                   preferences.clear();

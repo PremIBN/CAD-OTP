@@ -1,4 +1,5 @@
 import 'package:cadashboard/core/utils/colors.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:flutter/material.dart';
 
 class CusBtn extends StatelessWidget {
@@ -30,9 +31,16 @@ class CusBtn extends StatelessWidget {
             borderRadius: BorderRadius.circular(25),
             boxShadow: const [BoxShadow(blurStyle: BlurStyle.outer)]
           ),
-          child: loading == true ? const Center(child: CircularProgressIndicator(color: Colors.white,)) : Text(btnName,style: TextStyle(
-            color: textColor ?? (btnColor == true ? AppColor.background : Colors.white), fontWeight: FontWeight.w600,fontSize: 20
-          )),
+          child: loading == true
+              ? const Center(child: CircularProgressIndicator(color: Colors.white,))
+              : Text(
+                  ApiTextLocalizer.localize(btnName, locale: Localizations.localeOf(context)),
+                  style: TextStyle(
+                    color: textColor ?? (btnColor == true ? AppColor.background : Colors.white),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                  ),
+                ),
         ),
       ),
     );

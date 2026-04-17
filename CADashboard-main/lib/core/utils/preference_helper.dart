@@ -15,6 +15,25 @@ class PreferenceHelper {
   static const String fcmToken = "fcmToken";
   static const String restrictTillDays = "restrictTillDays";
 
+  // Localization
+  static const String appLocale = "appLocale";
+
+  /// User toggle in App settings (independent of OS permission; default true if unset).
+  static const String appNotificationsUserEnabled = "appNotificationsUserEnabled";
+  static const String appMicrophoneUserEnabled = "appMicrophoneUserEnabled";
+
+  // Attendance (local cache)
+  static const String attendanceIsSignedIn = "attendanceIsSignedIn";
+  static const String attendanceSignInTime = "attendanceSignInTime";
+  static const String attendanceSignOutTime = "attendanceSignOutTime";
+
+  // Last login context used for MarkAttendance
+  static const String lastLoginDeviceID = "lastLoginDeviceID";
+  static const String lastLoginDeviceName = "lastLoginDeviceName";
+  static const String lastLoginLatitude = "lastLoginLatitude";
+  static const String lastLoginLongitude = "lastLoginLongitude";
+  static const String lastLoginIpAddress = "lastLoginIpAddress";
+
 /*  static SharedPreferences? _prefs;
   static final Map<String, dynamic> _memoryPrefs = <String, dynamic>{};
 

@@ -8,6 +8,8 @@ import 'package:cadashboard/core/utils/utils.dart';
 import 'package:cadashboard/core/utils/view_state.dart';
 import 'package:cadashboard/main.dart';
 import 'package:cadashboard/ui/widget/custom_dropdown.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
+import 'package:cadashboard/core/services/app_locale_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,6 +36,19 @@ class _AddClientScreenState extends State<AddClientScreen> {
       borderSide: const BorderSide(width: 1.5, color: Colors.red)
   );
 
+  static const TextStyle _addClientLabelStyle =
+      TextStyle(fontWeight: FontWeight.w800, fontSize: 15);
+  static const TextStyle _addClientFieldStyle =
+      TextStyle(fontWeight: FontWeight.w600, fontSize: 15);
+  static const TextStyle _addClientHintStyle = TextStyle(
+    fontWeight: FontWeight.w600,
+    fontSize: 15,
+    color: Colors.black38,
+  );
+  static const TextStyle _addClientErrorStyle = TextStyle(
+    fontWeight: FontWeight.w600,
+    fontSize: 13,
+  );
 
   Widget clientField({
     required String label,
@@ -47,20 +62,31 @@ class _AddClientScreenState extends State<AddClientScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,style: const TextStyle(fontSize: 16)),
+        Builder(
+          builder: (context) {
+            return Text(
+              ApiTextLocalizer.localize(label, locale: Localizations.localeOf(context)),
+              style: _addClientLabelStyle,
+            );
+          },
+        ),
         const SizedBox(height: 5,),
         TextFormField(
           controller: controller,
+          hintLocales: AppLocaleController.inputHintLocales(context),
+          style: _addClientFieldStyle,
           textInputAction: label == 'Referred By' ? TextInputAction.send : TextInputAction.next,
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
           decoration: InputDecoration(
-            hintText: hint,
+            hintText: ApiTextLocalizer.localize(hint, locale: Localizations.localeOf(context)),
+            hintStyle: _addClientHintStyle,
             contentPadding: const EdgeInsets.all(15),
             enabledBorder: borders,
             focusedBorder: borders,
             errorBorder: errorBorder,
             focusedErrorBorder: errorBorder,
+            errorStyle: _addClientErrorStyle,
             prefixIcon: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: prefix,
@@ -90,7 +116,12 @@ class _AddClientScreenState extends State<AddClientScreen> {
         return Scaffold(
 
           appBar: AppBar(
-            title: Text(widget.orgId == null ? 'Add Client' : 'Update Client'),
+            title: Text(
+              ApiTextLocalizer.localize(
+                widget.orgId == null ? 'Add Client' : 'Update Client',
+                locale: Localizations.localeOf(buildContext),
+              ),
+            ),
           ),
 
           body: ValueListenableBuilder(
@@ -127,7 +158,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     hint: 'Enter Company Name',
                                     prefix: Image.asset(AppImages.company,width: 25,height: 25,),
                                     onValidator: (value) {
-                                      return model.companyNameController.text.isEmpty ? 'Please enter company name' : null;
+                                      return model.companyNameController.text.isEmpty
+                                          ? ApiTextLocalizer.localize('Please enter company name', locale: Localizations.localeOf(buildContext))
+                                          : null;
                                     },
                                   ),
 
@@ -137,7 +170,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     hint: 'Enter First Name',
                                     prefix: const Icon(Icons.person_outlined),
                                     onValidator: (value) {
-                                      return model.firstNameController.text.isEmpty ? 'PLease enter first name' : null;
+                                      return model.firstNameController.text.isEmpty
+                                          ? ApiTextLocalizer.localize('PLease enter first name', locale: Localizations.localeOf(buildContext))
+                                          : null;
                                     },
                                   ),
 
@@ -147,19 +182,21 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     hint: 'Enter Last Name',
                                     prefix: const Icon(Icons.person_outlined),
                                     onValidator: (value) {
-                                      return model.lastNameController.text.isEmpty ? 'PLease enter last name' : null;
+                                      return model.lastNameController.text.isEmpty
+                                          ? ApiTextLocalizer.localize('PLease enter last name', locale: Localizations.localeOf(buildContext))
+                                          : null;
                                     },
                                   ),
 
                                   CusDropDown(
-                                    label: 'Client Type',
-                                    hint: 'Please Select Client Type',
+                                    label: ApiTextLocalizer.localize('Client Type', locale: Localizations.localeOf(buildContext)),
+                                    hint: ApiTextLocalizer.localize('Please Select Client Type', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.client == 0 ? null : model.client,
                                     items: model.clientType.map((e) {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(e.displayName ?? ""),
+                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -170,23 +207,25 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.clientType.map((e){
-                                        return Text(e.displayName!);
+                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     validator: (value) {
-                                      return value == null ? 'Please select client type' : null;
+                                      return value == null
+                                          ? ApiTextLocalizer.localize('Please select client type', locale: Localizations.localeOf(buildContext))
+                                          : null;
                                     },
                                   ),
 
                                   CusDropDown(
-                                    label: 'Client Supply Type',
-                                    hint: 'Please Select Client Supply Type',
+                                    label: ApiTextLocalizer.localize('Client Supply Type', locale: Localizations.localeOf(buildContext)),
+                                    hint: ApiTextLocalizer.localize('Please Select Client Supply Type', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.clientSupplyTypeValue == 0 ? null : model.clientSupplyTypeValue,
                                     items: model.clientSupplyType.map((e) {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(e.displayName ?? ""),
+                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -198,7 +237,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.clientSupplyType.map((e){
-                                        return Text(e.displayName!);
+                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     // validator: (value) {
@@ -206,18 +245,25 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     // },
                                   ),
 
-                                  const Text('Client joining Date',style:  TextStyle(fontWeight: FontWeight.w800,fontSize: 15),),
+                                  Text(
+                                    ApiTextLocalizer.localize('Client joining Date', locale: Localizations.localeOf(buildContext)),
+                                    style: _addClientLabelStyle,
+                                  ),
                                   const SizedBox(height: 10),
                                   TextFormField(
                                     controller: model.startDateController,
+                                    hintLocales: AppLocaleController.inputHintLocales(context),
+                                    style: _addClientFieldStyle,
                                     decoration: InputDecoration(
-                                      hintText: 'Select Client joining Date',
+                                      hintText: ApiTextLocalizer.localize('Select Client joining Date', locale: Localizations.localeOf(buildContext)),
+                                      hintStyle: _addClientHintStyle,
                                       contentPadding:  const EdgeInsets.all(15),
                                       enabledBorder: borders,
                                       errorBorder: errorBorder,
                                       focusedErrorBorder: errorBorder,
                                       focusedBorder: borders,
                                       disabledBorder: borders,
+                                      errorStyle: _addClientErrorStyle,
                                       suffixIcon: const Icon(CupertinoIcons.right_chevron,color: Colors.black54),
                                     ),
                                     onSaved: (newValue) {},
@@ -243,8 +289,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                   const SizedBox(height: 15),
 
                                   CusDropDown(
-                                    label: 'STD Code',
-                                    hint: 'Please Select STD Code',
+                                    label: ApiTextLocalizer.localize('STD Code', locale: Localizations.localeOf(buildContext)),
+                                    hint: ApiTextLocalizer.localize('Please Select STD Code', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.stdCode == 0 ? null : model.stdCode,
                                     items: model.stdCodeType.map((e) {
                                       return DropdownMenuItem(
@@ -252,7 +298,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(e.codeName ?? ""),
+                                            Text(ApiTextLocalizer.localize(e.codeName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
                                             const Divider(height: 10,),
                                           ],
                                         )
@@ -265,7 +311,10 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.stdCodeType.map((e){
-                                        return  Text(e.codeName ?? "");
+                                        return Text(
+                                          ApiTextLocalizer.localize(e.codeName ?? "", locale: Localizations.localeOf(buildContext)),
+                                          style: _addClientFieldStyle,
+                                        );
                                       }).toList();
                                     },
                                     validator: (value) {
@@ -274,14 +323,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                   ),
 
                                   CusDropDown(
-                                    label: 'Firm Type',
-                                    hint: 'Please Select Firm Type',
+                                    label: ApiTextLocalizer.localize('Firm Type', locale: Localizations.localeOf(buildContext)),
+                                    hint: ApiTextLocalizer.localize('Please Select Firm Type', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.firm == 0 ? null : model.firm,
                                     items: model.firmType.map((e) {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(e.displayName ?? ""),
+                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -292,7 +341,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.firmType.map((e){
-                                        return Text(e.displayName!);
+                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -301,14 +350,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                   ),
 
                                   CusDropDown(
-                                    label: 'Industry Type',
-                                    hint: 'Please Select Industry Type',
+                                    label: ApiTextLocalizer.localize('Industry Type', locale: Localizations.localeOf(buildContext)),
+                                    hint: ApiTextLocalizer.localize('Please Select Industry Type', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.industry == 0 ? null : model.industry,
                                     items: model.industryType.map((e) {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(e.displayName ?? ""),
+                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -319,7 +368,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.industryType.map((e){
-                                        return Text(e.displayName!);
+                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -328,14 +377,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                   ),
 
                                   CusDropDown(
-                                    label: 'Group Type',
-                                    hint: 'Please Select Group Type',
+                                    label: ApiTextLocalizer.localize('Group Type', locale: Localizations.localeOf(buildContext)),
+                                    hint: ApiTextLocalizer.localize('Please Select Group Type', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.group == 0 ? null : model.group,
                                     items: model.groupType.map((e) {
                                       return DropdownMenuItem(value: e.orgGroupId, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(e.groupName ?? ""),
+                                          Text(ApiTextLocalizer.localize(e.groupName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -346,7 +395,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.groupType.map((e){
-                                        return Text(e.groupName!);
+                                        return Text(ApiTextLocalizer.localize(e.groupName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -355,14 +404,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                   ),
 
                                   CusDropDown(
-                                    label: 'Branch Name',
-                                    hint: 'Please Select Branch Name',
+                                    label: ApiTextLocalizer.localize('Branch Name', locale: Localizations.localeOf(buildContext)),
+                                    hint: ApiTextLocalizer.localize('Please Select Branch Name', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.branch == 0 ? null : model.branch,
                                     items: model.branchList.map((e) {
                                       return DropdownMenuItem(value: e.branchId, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(e.branchName ?? ""),
+                                          Text(ApiTextLocalizer.localize(e.branchName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -373,7 +422,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.branchList.map((e){
-                                        return Text(e.branchName!);
+                                        return Text(ApiTextLocalizer.localize(e.branchName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -417,7 +466,9 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     hint: 'Enter PAN Number',
                                     prefix: const Icon(CupertinoIcons.creditcard),
                                     onValidator: (value) {
-                                      return model.panNumberController.text.isEmpty ? 'PLease enter PAN number' : null;
+                                      return model.panNumberController.text.isEmpty
+                                          ? ApiTextLocalizer.localize('PLease enter PAN number', locale: Localizations.localeOf(buildContext))
+                                          : null;
                                       /*model.panRepo.checkPAN(panNumber: value).then((value){return value;}) != 0 ? 'PAN number already exists ' : null;*/
                                     },
                                   ),
@@ -495,7 +546,12 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                                 color: AppColor.background,
                                                 borderRadius: BorderRadius.circular(8.0),
                                               ),
-                                              child: const Center(child: Text('Submit',style: TextStyle(color: Colors.white,fontSize: 20))),
+                                              child: Center(
+                                                child: Text(
+                                                  ApiTextLocalizer.localize('Submit', locale: Localizations.localeOf(buildContext)),
+                                                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -511,7 +567,12 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                                 borderRadius: BorderRadius.circular(8.0)
                                               ),
                                               
-                                              child: const Center(child: Text('Cancel',style: TextStyle(color: Colors.white,fontSize: 20))),
+                                              child: Center(
+                                                child: Text(
+                                                  ApiTextLocalizer.localize('Cancel', locale: Localizations.localeOf(buildContext)),
+                                                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600),
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         )

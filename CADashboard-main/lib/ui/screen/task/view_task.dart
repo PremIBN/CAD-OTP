@@ -10,6 +10,8 @@ import 'package:cadashboard/ui/screen/task/sub_task.dart';
 import 'package:cadashboard/ui/screen/task/task_details_screen.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:cadashboard/ui/widget/task_card.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
+import 'package:cadashboard/core/services/app_locale_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -63,11 +65,16 @@ class _ViewTasksState extends State<ViewTasks> {
       },
       builder: (buildContext, model, child) {
         // appPrint("Task Tab Length : ${model.tabs.length}");
-        return DefaultTabController(
-          length: model.tabs.length,
-          child: Scaffold(
+        return Localizations.override(
+          context: buildContext,
+          locale: const Locale('en'),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: DefaultTabController(
+              length: model.tabs.length,
+              child: Scaffold(
             appBar: AppBar(
-              title: const Text("Task"),
+              title: Text(ApiTextLocalizer.localize('Task', locale: Localizations.localeOf(buildContext))),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.search),
@@ -131,7 +138,13 @@ class _ViewTasksState extends State<ViewTasks> {
                                     color: model.tabIndex == model.tabId[index] ?  AppColor.background : Colors.white,
                                     borderRadius: BorderRadius.circular(8)
                                   ),
-                                  child: Text(model.tabs[index],style: TextStyle(color: model.tabIndex == model.tabId[index] ? Colors.white : AppColor.background ),)
+                                child: Text(
+                                  ApiTextLocalizer.localize(
+                                    model.tabs[index],
+                                    locale: AppLocaleController.locale.value,
+                                  ),
+                                  style: TextStyle(color: model.tabIndex == model.tabId[index] ? Colors.white : AppColor.background ),
+                                )
                               ),
                             ),
                           );
@@ -263,6 +276,8 @@ class _ViewTasksState extends State<ViewTasks> {
                 }
               },
             ),
+              ),
+            ),
           ),
         );
       },
@@ -351,8 +366,9 @@ class _ViewTasksState extends State<ViewTasks> {
                   children: [
                     TextFormField(
                       controller: controller,
+                      hintLocales: AppLocaleController.inputHintLocales(context),
                       decoration: InputDecoration(
-                        hintText: '3 character required by Search',
+                        hintText: ApiTextLocalizer.localize('3 character required by Search', locale: Localizations.localeOf(context)),
                         contentPadding: const EdgeInsets.all(15),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(25),
@@ -396,7 +412,9 @@ class _ViewTasksState extends State<ViewTasks> {
                     ),
                     const SizedBox(height: 10),
                     Expanded(
-                      child: searchClientList.isEmpty ? const Center(child: Text("No Client Found")) : ListView.builder(
+                      child: searchClientList.isEmpty
+                          ? Center(child: Text(ApiTextLocalizer.localize('No Client Found', locale: Localizations.localeOf(context))))
+                          : ListView.builder(
                         shrinkWrap: true,
                         itemCount: searchClientList.length,
                         itemBuilder: (context, index) {
@@ -413,7 +431,10 @@ class _ViewTasksState extends State<ViewTasks> {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.all(5.0),
-                                  child: Text(searchClientList[index].displayName ?? "null",style: const TextStyle(fontSize: 18)),
+                                  child: Text(
+                                    ApiTextLocalizer.localize(searchClientList[index].displayName ?? "null", locale: Localizations.localeOf(context)),
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
                                 ),
                                 const Divider(height: 10,)
                               ],

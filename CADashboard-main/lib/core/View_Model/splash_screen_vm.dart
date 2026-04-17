@@ -48,7 +48,11 @@ class SplashScreenVM extends BaseModel{
           appPrint('Token : $message');
           viewLoader.value = ViewState.failed;
           if (context.mounted) {
-            CommonFunction.showSnackBar(context: context, isError: true, message: 'Your Session has been Expired');
+            CommonFunction.showSnackBarAuthEnglishOnly(
+              context: context,
+              isError: true,
+              message: 'Your Session has been Expired',
+            );
             Future.delayed(
               const Duration(milliseconds: 500),
                   () async{

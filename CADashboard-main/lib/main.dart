@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'core/common/app_version_service.dart';
 import 'firebase_options.dart';
@@ -13,9 +12,13 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cadashboard/core/utils/preference_helper.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:cadashboard/core/services/fcm_token_sync.dart';
 import 'package:cadashboard/core/services/notification_service.dart';
 import 'package:permission_handler/permission_handler.dart' show Permission, PermissionActions, PermissionStatusGetters;
 
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/services/app_locale_controller.dart';
+import 'l10n/app_localizations.dart';
 /// Trusts HTTPS certificate only for the app's API host(s).
 /// Use when the server uses a CA not in the device trust store (e.g. internal CA or incomplete chain).
 class _ApiHttpOverrides extends HttpOverrides {
@@ -39,6 +42,7 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     preferences = await SharedPreferences.getInstance();
+    await AppLocaleController.init();
     await AppVersionService.init();
     appCrashlytics();
   } catch (e, stack) {
@@ -70,23 +74,16 @@ Future getFCMToken() async {
 }
 
 notification() async {
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-
-  String fcmToken = await firebaseMessaging.getToken() ?? "";
-  log(name: "FCM Token", "${preferences.getString(PreferenceHelper.fcmToken)}");
-  appPrint("FCM Token : ${preferences.getString(PreferenceHelper.fcmToken)}");
-  await preferences.setString(PreferenceHelper.fcmToken, fcmToken);
-
-  log(name: "preferences FCM Token", "${preferences.getString(PreferenceHelper.fcmToken)}");
-  appPrint("preferences FCM Token : ${preferences.getString(PreferenceHelper.fcmToken)}");
-
-  firebaseMessaging.requestPermission(alert: true, sound: true, badge: true);
-
-  firebaseMessaging.setForegroundNotificationPresentationOptions(badge: true, sound: true, alert: true);
+  await registerFcmTokenAndRequestPlatformPermission();
+  final prefs = await SharedPreferences.getInstance();
+  appPrint('FCM Token : ${prefs.getString(PreferenceHelper.fcmToken)}');
 }
 
 Future<void> requestNotificationPermission() async {
+  final prefs = await SharedPreferences.getInstance();
+  if (!(prefs.getBool(PreferenceHelper.appNotificationsUserEnabled) ?? true)) {
+    return;
+  }
   if (Platform.isAndroid) {
     final androidInfo = await Permission.notification.status;
 
@@ -162,6 +159,9 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     FirebaseMessaging.onMessage.listen((message) {
+      if (!(preferences.getBool(PreferenceHelper.appNotificationsUserEnabled) ?? true)) {
+        return;
+      }
       if (message.notification != null) {
         LocalNotificationService.display(message);
         appPrint(":Message-----=== $message");
@@ -179,33 +179,46 @@ class _MyAppState extends State<MyApp> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
 
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      title: 'CADashboard',
-      theme: ThemeData(
-        appBarTheme: AppBarTheme(
-          iconTheme: const IconThemeData(color: AppColor.background),
-          centerTitle: true,
-          color: Colors.transparent,
-          titleTextStyle: const TextStyle(
-            color: AppColor.background,
-            fontWeight: FontWeight.w700,
-            fontSize: 25,
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: AppLocaleController.locale,
+      builder: (context, locale, _) {
+        return MaterialApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          title: 'CADashboard',
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          theme: ThemeData(
+            appBarTheme: AppBarTheme(
+              iconTheme: const IconThemeData(color: AppColor.background),
+              centerTitle: true,
+              color: Colors.transparent,
+              titleTextStyle: const TextStyle(
+                color: AppColor.background,
+                fontWeight: FontWeight.w700,
+                fontSize: 25,
+              ),
+              elevation: 10,
+              systemOverlayStyle: SystemUiOverlayStyle(
+                statusBarColor: Colors.black.withValues(alpha: (0.2)),
+              ),
+            ),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: AppColor.background,
+              primary: AppColor.background,
+            ),
+            fontFamily: 'Exo2',
+            useMaterial3: true,
           ),
-          elevation: 10,
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.black.withValues(alpha: (0.2)),
-          ),
-        ),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColor.background,
-          primary: AppColor.background,
-        ),
-        fontFamily: 'Exo2',
-        useMaterial3: true,
-      ),
-      home: const SplashScreen(),
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

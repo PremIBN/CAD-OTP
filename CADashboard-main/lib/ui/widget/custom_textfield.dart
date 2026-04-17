@@ -1,4 +1,6 @@
 import 'package:cadashboard/core/utils/colors.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
+import 'package:cadashboard/core/services/app_locale_controller.dart';
 import 'package:flutter/material.dart';
 
 class CusField extends StatelessWidget {
@@ -28,9 +30,12 @@ class CusField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final localizedHint = ApiTextLocalizer.localize(hint, locale: locale);
 
     return TextFormField(
       controller: controller,
+      hintLocales: AppLocaleController.inputHintLocales(context),
       readOnly: readOnly == null ? false : readOnly!,
       style: const TextStyle(
         fontSize: 15,fontWeight: FontWeight.w600
@@ -40,8 +45,8 @@ class CusField extends StatelessWidget {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.all(15),
-        hintText: hint,
-        labelText: hint,
+        hintText: localizedHint,
+        labelText: localizedHint,
         hintStyle: const TextStyle(color: Colors.grey),
         labelStyle: const TextStyle(fontWeight: FontWeight.w100),
         focusedBorder: borders,
@@ -56,7 +61,11 @@ class CusField extends StatelessWidget {
       ),
       onChanged: onChanged,
       onSaved: (newValue) {},
-      validator: onValidator,
+      validator: (value) {
+        final res = onValidator?.call(value);
+        if (res == null) return null;
+        return ApiTextLocalizer.localize(res.toString(), locale: locale);
+      },
     );
   }
 }

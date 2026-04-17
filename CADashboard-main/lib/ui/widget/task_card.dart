@@ -1,3 +1,4 @@
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:cadashboard/core/utils/colors.dart';
 import 'package:cadashboard/core/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ class TasksCard extends StatelessWidget {
                         ),
                       )),
                   if(taskName != null) Expanded(
-                    child: Text(taskName!,
+                    child: Text(ApiTextLocalizer.localize(taskName!, locale: Localizations.localeOf(context)),
                       style: const TextStyle(color: AppColor.textButtonColor),
                     ),
                   )
@@ -74,11 +75,11 @@ class TasksCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if(clientName != "")const Text('Client Name'),
+                      if(clientName != "")Text(ApiTextLocalizer.localize('Client Name', locale: Localizations.localeOf(context))),
                       // ignore: unrelated_type_equality_checks
-                      if(endingDate != null && endingDate != "")const Text('Ending Date'),
-                      if(priority != "")const Text('priority'),
-                      if(assign != "")const Text('Status'),
+                      if(endingDate != null && endingDate != "")Text(ApiTextLocalizer.localize('Ending Date', locale: Localizations.localeOf(context))),
+                      if(priority != "")Text(ApiTextLocalizer.localize('Priority', locale: Localizations.localeOf(context))),
+                      if(assign != "")Text(ApiTextLocalizer.localize('Status', locale: Localizations.localeOf(context))),
                     ],
                   ),
                   Expanded(
@@ -86,11 +87,11 @@ class TasksCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if(clientName != "")Text('  :  $clientName', overflow: TextOverflow.ellipsis),
+                        if(clientName != "")Text('  :  ${ApiTextLocalizer.localize(clientName!, locale: Localizations.localeOf(context))}', overflow: TextOverflow.ellipsis),
                         // ignore: unrelated_type_equality_checks
                         if(endingDate != null && endingDate != "")Text('  :  ${DateFormat('dd-MMM-yyyy').format(endingDate!)}', overflow: TextOverflow.ellipsis),
-                        if(priority != "")Text('  :  $priority', overflow: TextOverflow.ellipsis),
-                        if(assign != "")Text('  :  $assign', overflow: TextOverflow.ellipsis),
+                        if(priority != "")Text('  :  ${ApiTextLocalizer.localize(priority!, locale: Localizations.localeOf(context))}', overflow: TextOverflow.ellipsis),
+                        if(assign != "")Text('  :  ${ApiTextLocalizer.localize(assign!, locale: Localizations.localeOf(context))}', overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),

@@ -1,11 +1,13 @@
 import 'package:cadashboard/core/View_Model/account/account_receivable_vm.dart';
 import 'package:cadashboard/core/common/common_loader.dart';
 import 'package:cadashboard/core/common/empty_data.dart';
+import 'package:cadashboard/core/services/app_locale_controller.dart';
 import 'package:cadashboard/core/utils/stateless_base_view.dart';
 import 'package:cadashboard/core/utils/view_state.dart';
 import 'package:cadashboard/ui/screen/account/Widget/account_receivable_widget.dart';
 import 'package:cadashboard/ui/screen/account/Widget/details_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:cadashboard/core/services/api_text_localizer.dart';
 
 class AccountReceivableScreen extends StatefulWidget {
   const AccountReceivableScreen({super.key});
@@ -53,12 +55,22 @@ class _AccountReceivableScreenState extends State<AccountReceivableScreen>
         p0.getCurrency(aRContext);
       },
       builder: (buildContext, model, child) {
+        final locale = Localizations.localeOf(buildContext);
         return Scaffold(
           appBar: AppBar(
-            title: ValueListenableBuilder(
-              valueListenable: model.currency,
-              builder: (context, value, child) {
-                return Text(value);
+            // Rebuild when currency or app language changes (ApiTextLocalizer / glossary).
+            title: ListenableBuilder(
+              listenable: Listenable.merge([
+                model.currency,
+                AppLocaleController.locale,
+              ]),
+              builder: (context, _) {
+                return Text(
+                  ApiTextLocalizer.localize(
+                    model.currency.value,
+                    locale: Localizations.localeOf(context),
+                  ),
+                );
               },
             ),
             actions: [
@@ -95,7 +107,7 @@ class _AccountReceivableScreenState extends State<AccountReceivableScreen>
                 controller: tabController,
                 tabs: tabs
                     .map((e) => Tab(
-                          text: e,
+                          text: ApiTextLocalizer.localize(e.toString(), locale: locale),
                         ))
                     .toList(),
               ),
@@ -182,8 +194,10 @@ class _AccountReceivableScreenState extends State<AccountReceivableScreen>
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(5.0),
-                        child: Text(search[index],
-                            style: const TextStyle(fontSize: 18)),
+                        child: Text(
+                          ApiTextLocalizer.localize(search[index].toString(), locale: Localizations.localeOf(aRContext)),
+                          style: const TextStyle(fontSize: 18),
+                        ),
                       ),
                       const Divider(
                         height: 10,

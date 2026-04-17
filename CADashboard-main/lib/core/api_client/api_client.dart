@@ -9,7 +9,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../ui/screen/home.dart';
 import '../services/location_dialog_service.dart';
 import '../url/api_url.dart';
 import '../utils/preference_helper.dart';
@@ -27,12 +26,11 @@ class ApiClient{
     var result;
 
     try {
-      var urls = Uri.decodeComponent(url.replace(queryParameters: queryParam).toString());
-
-      log('---->Urls : $urls');
+      final uri = url.replace(queryParameters: queryParam);
+      log('---->Urls : $uri');
 
       var response = await http
-          .get(Uri.parse(urls), headers: header)
+          .get(uri, headers: header)
           .timeout(_defaultTimeout);
 
       result = await handleResponse(response);
@@ -41,6 +39,12 @@ class ApiClient{
       appPrint(e);
     } on SocketException catch (e) {
       result = {"Success": 0, "Message": "No Internet Found"};
+      appPrint(e);
+    } on Exception catch (e) {
+      result = {
+        "Success": 0,
+        "Message": e.toString().trim().isNotEmpty ? e.toString() : "Something went wrong",
+      };
       appPrint(e);
     } on Error catch (e) {
       result = {"Success": 0, "Message": "Something went wrong"};
@@ -109,12 +113,11 @@ class ApiClient{
 
     var result;
     try {
-      var urls = Uri.decodeComponent(url.replace(queryParameters: queryParam).toString());
-
-      log('---->Urls : $urls');
+      final uri = url.replace(queryParameters: queryParam);
+      log('---->Urls : $uri');
 
       var response = await http
-          .get(Uri.parse(urls), headers: header)
+          .get(uri, headers: header)
           .timeout(_defaultTimeout);
 
       result = await handleResponse(response);
@@ -123,6 +126,12 @@ class ApiClient{
       appPrint(e);
     } on SocketException catch (e) {
       result = {"Success": 0, "Message": "No Internet Found"};
+      appPrint(e);
+    } on Exception catch (e) {
+      result = {
+        "Success": 0,
+        "Message": e.toString().trim().isNotEmpty ? e.toString() : "Something went wrong",
+      };
       appPrint(e);
     } on Error catch (e) {
       result = {"Success": 0, "Message": "Something went wrong"};
@@ -309,17 +318,44 @@ Future postMethod({
     }
   }
 
+  void locationDialog({
+    required BuildContext context,
+    required VoidCallback onTapGotIt,
+  }) {
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return CupertinoAlertDialog(
+          title: const Text('Enable Location Service'),
+          content: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              Platform.isIOS
+                  ? 'Enable location service on your device inside Settings → Privacy → Location Services.'
+                  : 'Enable location service on your device settings.',
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: onTapGotIt,
+              child: const Text('OK, GOT IT!'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future checkGetMethod({required Uri url, Map<String, dynamic>? queryParam, Map<String, String>? header}) async {
 
     var result;
 
     try {
-      var urls = Uri.decodeComponent(url.replace(queryParameters: queryParam).toString());
-
-      log('---->Urls : $urls');
+      final uri = url.replace(queryParameters: queryParam);
+      log('---->Urls : $uri');
 
       var response = await http
-          .get(Uri.parse(urls), headers: header)
+          .get(uri, headers: header)
           .timeout(_defaultTimeout);
 
       result = await handleResponse(response);
@@ -328,6 +364,12 @@ Future postMethod({
       appPrint(e);
     } on SocketException catch (e) {
       result = {"Success": 0, "Message": "No Internet Found"};
+      appPrint(e);
+    } on Exception catch (e) {
+      result = {
+        "Success": 0,
+        "Message": e.toString().trim().isNotEmpty ? e.toString() : "Something went wrong",
+      };
       appPrint(e);
     } on Error catch (e) {
       result = {"Success": 0, "Message": "Something went wrong"};
@@ -391,7 +433,6 @@ Future postMethod({
   /// Handle Response
   Future handleResponse(http.Response response) async {
     log('----->${response.statusCode}');
-    appPrint("Response :-> ${response.body}");
     switch(response.statusCode){
       case 200:
         return await jsonDecode(response.body);

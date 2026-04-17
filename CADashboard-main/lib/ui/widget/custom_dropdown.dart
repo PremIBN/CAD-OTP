@@ -38,18 +38,34 @@ class CusDropDown extends StatelessWidget {
           isExpanded: true,
           value: dropDownValue,
           borderRadius: BorderRadius.circular(radius ?? 25),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+            color: Colors.black87,
+          ),
           decoration: InputDecoration(
               contentPadding: const EdgeInsets.all(10),
               enabledBorder: inputBorder,
               focusedBorder: inputBorder,
               errorBorder: errorInputBorder,
               focusedErrorBorder: errorInputBorder,
+              errorStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
               border: const OutlineInputBorder(
                   borderSide: BorderSide.none
               )
           ),
           menuMaxHeight: 400,
-          hint:  Text(hint,style: const TextStyle(color: Colors.black38)),
+          hint: Text(
+            hint,
+            style: const TextStyle(
+              color: Colors.black38,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
+          ),
           items: items,
           onChanged: onChanged,
           selectedItemBuilder: selectedItemBuilder,
