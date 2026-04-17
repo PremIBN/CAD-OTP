@@ -378,8 +378,24 @@ class AttendanceRepository {
   }
 
   bool _isSuccess(dynamic response) {
-    if (response is Map) {
-      final map = Map<String, dynamic>.from(response);
+    Map<String, dynamic>? asMap(dynamic input) {
+      if (input is Map) return Map<String, dynamic>.from(input);
+      if (input is String) {
+        final raw = input.trim();
+        if (raw.startsWith('{') && raw.endsWith('}')) {
+          try {
+            final decoded = jsonDecode(raw);
+            if (decoded is Map) return Map<String, dynamic>.from(decoded);
+          } catch (_) {
+            // ignore malformed json string
+          }
+        }
+      }
+      return null;
+    }
+
+    final map = asMap(response);
+    if (map != null) {
       final raw = map['Success'] ?? map['success'];
       if (raw is bool) return raw;
       final s = (raw ?? '').toString().trim().toLowerCase();
@@ -392,7 +408,20 @@ class AttendanceRepository {
   String? _messageFrom(dynamic response) {
     if (response is String) {
       final s = response.trim();
-      return s.isEmpty ? null : s;
+      if (s.isEmpty) return null;
+      if (s.startsWith('{') && s.endsWith('}')) {
+        try {
+          final decoded = jsonDecode(s);
+          if (decoded is Map) {
+            final map = Map<String, dynamic>.from(decoded);
+            final msg = (map['Message'] ?? map['message'])?.toString().trim();
+            return (msg == null || msg.isEmpty) ? null : msg;
+          }
+        } catch (_) {
+          // Keep original string if not valid json
+        }
+      }
+      return s;
     }
     if (response is Map) {
       final map = Map<String, dynamic>.from(response);

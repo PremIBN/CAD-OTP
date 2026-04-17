@@ -177,12 +177,19 @@ class HomeVM extends BaseModel {
       attendanceSignedIn.value = res.isSignedIn;
       attendanceSignInAt.value = res.signInAt;
       attendanceSignOutAt.value = res.signOutAt;
+      if (context.mounted) {
+        CommonFunction.showSnackBar(
+          context: context,
+          isError: false,
+          message: 'You Have Successfully Sign In',
+        );
+      }
     } catch (e) {
       await _syncAttendanceStateSilently();
       if (context.mounted) {
         CommonFunction.showSnackBar(
           context: context,
-          isError: false,
+          isError: true,
           message: e.toString().replaceFirst('Exception: ', ''),
         );
       }
@@ -202,13 +209,20 @@ class HomeVM extends BaseModel {
       attendanceSignedIn.value = res.isSignedIn;
       attendanceSignInAt.value = res.signInAt;
       attendanceSignOutAt.value = res.signOutAt;
+      if (context.mounted) {
+        CommonFunction.showSnackBar(
+          context: context,
+          isError: false,
+          message: 'You Have Successfully Sign Out',
+        );
+      }
     } catch (e) {
       await _syncAttendanceStateSilently();
       if (context.mounted) {
         final msg = e.toString().replaceFirst('Exception: ', '');
         CommonFunction.showSnackBar(
           context: context,
-          isError: false,
+          isError: true,
           message: msg,
         );
       }
