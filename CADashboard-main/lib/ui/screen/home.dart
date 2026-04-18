@@ -26,7 +26,6 @@ import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:cadashboard/core/model/attendance/attendance_history_row.dart';
 import 'package:cadashboard/ui/widget/greeting_widget.dart';
-import 'package:cadashboard/ui/widget/language_selection_sheet.dart';
 import 'package:cadashboard/ui/widget/screen_loader.dart';
 import 'package:cadashboard/ui/widget/upgrade_app.dart';
 import 'package:flutter/cupertino.dart';
@@ -199,16 +198,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           )
                         ],
                       ),
-                      IconButton(
-                        icon: Image.asset(
-                          'assets/images/language.png',
-                          width: 22,
-                          height: 22,
-                        ),
-                        onPressed: () {
-                          LanguageSelectionSheet.show(homeContext);
-                        },
-                      ),
+                      // Language switcher temporarily disabled on Home screen.
                       SizedBox(width: size.width * 0.01,)
                     ],
                   ),
