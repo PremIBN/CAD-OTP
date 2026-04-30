@@ -24,6 +24,7 @@ import 'package:cadashboard/ui/screen/task/view_task.dart';
 import 'package:cadashboard/ui/screen/webview_screen.dart';
 import 'package:cadashboard/ui/widget/custom_btn.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
+import 'package:cadashboard/ui/widget/language_selection_sheet.dart';
 import 'package:cadashboard/core/model/attendance/attendance_history_row.dart';
 import 'package:cadashboard/ui/widget/greeting_widget.dart';
 import 'package:cadashboard/ui/widget/screen_loader.dart';
@@ -198,7 +199,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           )
                         ],
                       ),
-                      // Language switcher temporarily disabled on Home screen.
+                      IconButton(
+                        icon: Image.asset(
+                          AppImages.language,
+                          width: 22,
+                          height: 22,
+                        ),
+                        tooltip: 'Language',
+                        onPressed: () async {
+                          await LanguageSelectionSheet.show(
+                            homeContext,
+                            dismissible: true,
+                          );
+                        },
+                      ),
                       SizedBox(width: size.width * 0.01,)
                     ],
                   ),

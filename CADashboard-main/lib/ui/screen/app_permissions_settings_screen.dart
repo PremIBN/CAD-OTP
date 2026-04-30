@@ -1,5 +1,6 @@
 import 'package:cadashboard/core/services/fcm_token_sync.dart';
 import 'package:cadashboard/core/utils/preference_helper.dart';
+import 'package:cadashboard/ui/widget/language_selection_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -141,6 +142,18 @@ class _AppPermissionsSettingsScreenState extends State<AppPermissionsSettingsScr
           body: ListView(
             padding: const EdgeInsets.all(12),
             children: [
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.language),
+                  title: const Text('Language'),
+                  subtitle: const Text('Change app language'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    await LanguageSelectionSheet.show(context, dismissible: true);
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.notifications),

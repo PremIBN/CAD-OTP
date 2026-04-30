@@ -7,8 +7,6 @@ import 'package:cadashboard/core/model/task/add_task/GetAllDepartment_model.dart
 import 'package:cadashboard/core/model/task/add_task/GetBranchList_model.dart';
 import 'package:cadashboard/core/model/task/add_task/PriorityDropDown_model.dart';
 import 'package:cadashboard/core/model/task/specific_task_model.dart' as stk;
-import 'package:cadashboard/core/services/api_text_localizer.dart';
-import 'package:cadashboard/core/services/app_locale_controller.dart';
 import 'package:cadashboard/core/utils/base_model.dart';
 import 'package:cadashboard/core/utils/view_state.dart';
 import 'package:cadashboard/main.dart';
@@ -263,17 +261,14 @@ class AddTaskVM extends BaseModel {
         priority = response.priorityId;
         share = response.isShared;
 
-        final loc = AppLocaleController.locale.value ?? const Locale('en');
-        employeeController.text =
-            ApiTextLocalizer.localize(response.assignedToEmpName ?? '', locale: loc);
+        employeeController.text = response.assignedToEmpName ?? '';
 
         getSpecificTaskEmp.addAll(response.assignedToEmpId!.split(",").toList());
 
         if(response.clientOrgId == 0){
-          clientController.text = ApiTextLocalizer.localize('Internal', locale: loc);
+          clientController.text = 'Internal';
         } else {
-          clientController.text =
-              ApiTextLocalizer.localize(response.clientName ?? '', locale: loc);
+          clientController.text = response.clientName ?? '';
         }
         startDateController.text = DateFormat('dd-MMM-yyyy').format(startDate!);
         endDateController.text = DateFormat('dd-MMM-yyyy').format(endDate!);

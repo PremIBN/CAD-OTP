@@ -85,10 +85,9 @@ class _AddTakScreenState extends State<AddTakScreen> {
         if(widget.subTask == true){
           p0.service = widget.service;
           p0.client = widget.clientId;
-          final loc = AppLocaleController.locale.value ?? const Locale('en');
           p0.clientController.text = widget.clientId == 0
-              ? ApiTextLocalizer.localize('Internal', locale: loc)
-              : ApiTextLocalizer.localize(widget.clientName ?? '', locale: loc);
+              ? 'Internal'
+              : (widget.clientName ?? '');
           p0.fy = widget.fy;
           p0.startDate = widget.pStartDate;
           p0.endDate = widget.pEndDate;
@@ -166,7 +165,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                           child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e.displayName ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -177,7 +176,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.serviceList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e.displayName ?? "");
                                       }).toList();
                                     },
                                     validator: (value) {
@@ -196,7 +195,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e.displayName ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -207,7 +206,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.taskStatusList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e.displayName ?? "");
                                       }).toList();
                                     },
                                     validator: (value) {
@@ -255,9 +254,8 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                                 model.assToID = model.employeeId.map((e){
                                                   return e;
                                                 }).join(',');
-                                                final loc = Localizations.localeOf(addTaskContext);
                                                 model.employeeController.text = model.employeeName.map((e){
-                                                  return ApiTextLocalizer.localize(e ?? '', locale: loc);
+                                                  return e ?? '';
                                                 }).join(', ');
                                               });});
 
@@ -291,10 +289,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                                                 });
                                                               },
                                                               title: Text(
-                                                                ApiTextLocalizer.localize(
-                                                                  model.employeeList[index].displayName ?? '',
-                                                                  locale: Localizations.localeOf(addTaskContext),
-                                                                ),
+                                                                model.employeeList[index].displayName ?? '',
                                                                 style: const TextStyle(fontSize: 17),
                                                               ),
                                                             ),
@@ -325,7 +320,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e.displayName ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -336,7 +331,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.employeeList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e.displayName ?? "");
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -353,7 +348,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e.displayName ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -364,7 +359,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.employeeList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e.displayName ?? "");
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -423,7 +418,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                                       hintLocales: AppLocaleController.inputHintLocales(context),
                                                       controller: controller,
                                                       decoration: InputDecoration(
-                                                        hintText: ApiTextLocalizer.localize('3 character required by Search', locale: Localizations.localeOf(addTaskContext)),
+                                                        hintText: '3 character required by Search',
                                                         contentPadding: const EdgeInsets.all(15),
                                                         enabledBorder: OutlineInputBorder(
                                                             borderRadius: BorderRadius.circular(25),
@@ -478,10 +473,8 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                                                   onTap: () {
                                                                     Navigator.pop(context);
                                                                     model.client = searchClientList[index].displayValue;
-                                                                    model.clientController.text = ApiTextLocalizer.localize(
-                                                                      searchClientList[index].displayName ?? '',
-                                                                      locale: Localizations.localeOf(addTaskContext),
-                                                                    );
+                                                                    model.clientController.text =
+                                                                        searchClientList[index].displayName ?? '';
                                                                     model.updateUI();
                                                                   },
                                                                   child: Row(
@@ -490,10 +483,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                                                         child: Padding(
                                                                           padding: const EdgeInsets.all(5.0),
                                                                           child: Text(
-                                                                            ApiTextLocalizer.localize(
-                                                                              searchClientList[index].displayName ?? '',
-                                                                              locale: Localizations.localeOf(addTaskContext),
-                                                                            ),
+                                                                            searchClientList[index].displayName ?? '',
                                                                             style: const TextStyle(fontSize: 17),
                                                                           ),
                                                                         ),
@@ -576,6 +566,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     onTap: () async{
                                       var startDate = await showDatePicker(
                                           context: addTaskContext,
+                                          locale: const Locale('en'),
                                           initialDate: widget.subTask == true&&widget.pStartDate!=null ? widget.pStartDate! : DateTime.now(),
                                           firstDate: widget.subTask == true&&widget.pStartDate!=null ? widget.pStartDate! : DateTime.now(),
                                           lastDate: widget.subTask == true&&widget.pEndDate!=null ? widget.pEndDate! : DateTime(DateTime.now().year + 10)
@@ -654,6 +645,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       if(model.startDate != null){
                                         var endDate = await showDatePicker(
                                           context: addTaskContext,
+                                          locale: const Locale('en'),
                                           initialDate: model.startDate!,
                                           firstDate: model.startDate!,
                                           lastDate: widget.subTask == true&&widget.pEndDate!=null ? widget.pEndDate! : DateTime(model.startDate!.year + 10),
@@ -719,7 +711,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       return DropdownMenuItem(value: e.branchId, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.branchName ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e.branchName ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -730,7 +722,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.branchList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.branchName ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e.branchName ?? "");
                                       }).toList();
                                     },
                                     validator: (value) {
@@ -753,7 +745,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e.displayName ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -764,7 +756,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.departmentList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e.displayName ?? "");
                                       }).toList();
                                     },
                                     validator: (value) {
@@ -787,7 +779,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e.displayName ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -798,7 +790,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.priorityList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e.displayName ?? "");
                                       }).toList();
                                     },
                                     validator: (value) {
@@ -818,7 +810,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e.displayName ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -831,7 +823,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.yearList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e.displayName ?? "");
                                       }).toList();
                                     },
                                     validator: (value) {
@@ -880,7 +872,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       return DropdownMenuItem(value: e, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e ?? "", locale: Localizations.localeOf(addTaskContext))),
+                                          Text(e ?? ""),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -891,7 +883,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return bill.map((e){
-                                        return Text(ApiTextLocalizer.localize(e ?? "", locale: Localizations.localeOf(addTaskContext)));
+                                        return Text(e ?? "");
                                       }).toList();
                                     },
                                     validator: (value) {

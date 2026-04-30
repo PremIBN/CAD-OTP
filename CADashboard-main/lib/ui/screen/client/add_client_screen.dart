@@ -196,7 +196,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
+                                          Text(e.displayName ?? "", style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -207,7 +207,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.clientType.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
+                                        return Text(e.displayName ?? "", style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     validator: (value) {
@@ -225,7 +225,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
+                                          Text(e.displayName ?? "", style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -237,7 +237,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.clientSupplyType.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
+                                        return Text(e.displayName ?? "", style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     // validator: (value) {
@@ -274,6 +274,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     onTap: () async{
                                       var startDate = await showDatePicker(
                                         context: context,
+                                        locale: const Locale('en'),
                                         initialDate: model.startDate ?? DateTime.now(),
                                         firstDate: DateTime(2000),
                                         lastDate: DateTime.now(),
@@ -298,7 +299,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(ApiTextLocalizer.localize(e.codeName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
+                                            Text(e.codeName ?? "", style: _addClientFieldStyle),
                                             const Divider(height: 10,),
                                           ],
                                         )
@@ -312,7 +313,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     selectedItemBuilder: (context) {
                                       return model.stdCodeType.map((e){
                                         return Text(
-                                          ApiTextLocalizer.localize(e.codeName ?? "", locale: Localizations.localeOf(buildContext)),
+                                          e.codeName ?? "",
                                           style: _addClientFieldStyle,
                                         );
                                       }).toList();
@@ -330,7 +331,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
+                                          Text(e.displayName ?? "", style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -341,7 +342,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.firmType.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
+                                        return Text(e.displayName ?? "", style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -357,7 +358,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       return DropdownMenuItem(value: e.displayValue, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
+                                          Text(e.displayName ?? "", style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -368,7 +369,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.industryType.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.displayName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
+                                        return Text(e.displayName ?? "", style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -384,7 +385,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       return DropdownMenuItem(value: e.orgGroupId, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.groupName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
+                                          Text(e.groupName ?? "", style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -395,7 +396,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.groupType.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.groupName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
+                                        return Text(e.groupName ?? "", style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     /*validator: (value) {
@@ -411,7 +412,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       return DropdownMenuItem(value: e.branchId, child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(ApiTextLocalizer.localize(e.branchName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle),
+                                          Text(e.branchName ?? "", style: _addClientFieldStyle),
                                           const Divider(height: 10,),
                                         ],
                                       ));
@@ -422,7 +423,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     },
                                     selectedItemBuilder: (context) {
                                       return model.branchList.map((e){
-                                        return Text(ApiTextLocalizer.localize(e.branchName ?? "", locale: Localizations.localeOf(buildContext)), style: _addClientFieldStyle);
+                                        return Text(e.branchName ?? "", style: _addClientFieldStyle);
                                       }).toList();
                                     },
                                     /*validator: (value) {

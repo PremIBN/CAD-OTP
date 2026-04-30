@@ -52,11 +52,10 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
 
   // ignore: non_constant_identifier_names
   Widget Details(String label, String value) {
-    final locale = Localizations.localeOf(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("${ApiTextLocalizer.localize(label, locale: locale)},",style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 15)),
+        Text("$label,",style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 15)),
         text(value),
       ],
     );

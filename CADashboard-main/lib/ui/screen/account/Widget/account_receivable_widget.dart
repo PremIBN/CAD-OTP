@@ -1,5 +1,4 @@
 import 'package:cadashboard/core/utils/colors.dart';
-import 'package:cadashboard/core/services/api_text_localizer.dart';
 import 'package:flutter/material.dart';
 
 // ignore: non_constant_identifier_names
@@ -14,13 +13,9 @@ Widget CustomText({required String title, required String value, required String
         width: double.infinity,
         child: Column(
           children: [
-            Builder(
-              builder: (context) {
-                return Text(
-                  ApiTextLocalizer.localize(title, locale: Localizations.localeOf(context)),
-                  style: const TextStyle(color: AppColor.background,fontWeight: FontWeight.bold,fontSize: 15),
-                );
-              },
+            Text(
+              title,
+              style: const TextStyle(color: AppColor.background,fontWeight: FontWeight.bold,fontSize: 15),
             ),
             const SizedBox(height: 3,),
             Text("$currency : $value"),
@@ -41,13 +36,9 @@ Widget RawDivider(){
 
 // ignore: non_constant_identifier_names
 Widget TitleText(String text, {Color? color}){
-  return Builder(
-    builder: (context) {
-      return Text(
-        ApiTextLocalizer.localize(text, locale: Localizations.localeOf(context)),
-        style: TextStyle(fontWeight: FontWeight.bold, color: color),
-      );
-    },
+  return Text(
+    text,
+    style: TextStyle(fontWeight: FontWeight.bold, color: color),
   );
 }
 

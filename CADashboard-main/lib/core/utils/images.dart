@@ -21,6 +21,7 @@ class AppImages{
   static const privacyPolicy = 'assets/icon/privacy_policy.png';
   static const termsCondition = 'assets/icon/terms_condition.png';
   static const gallery = 'assets/icon/gallery.png';
+  static const language = 'assets/icon/language.png';
 
   static const facebook = 'assets/icon/Facebook.png';
   static const linkedin = 'assets/icon/linkedin.png';

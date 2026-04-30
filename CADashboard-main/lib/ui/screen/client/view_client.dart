@@ -87,7 +87,7 @@ class _ViewClientState extends State<ViewClient> {
                     controller: model.searchController,
                     hintLocales: AppLocaleController.inputHintLocales(buildContext),
                     decoration: InputDecoration(
-                      hintText: ApiTextLocalizer.localize('3 character required by Search', locale: Localizations.localeOf(buildContext)),
+                      hintText: '3 character required by Search',
                       contentPadding: const EdgeInsets.all(15),
                       enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(25),

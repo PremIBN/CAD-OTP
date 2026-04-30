@@ -368,7 +368,7 @@ class _ViewTasksState extends State<ViewTasks> {
                       controller: controller,
                       hintLocales: AppLocaleController.inputHintLocales(context),
                       decoration: InputDecoration(
-                        hintText: ApiTextLocalizer.localize('3 character required by Search', locale: Localizations.localeOf(context)),
+                        hintText: '3 character required by Search',
                         contentPadding: const EdgeInsets.all(15),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(25),
@@ -413,7 +413,7 @@ class _ViewTasksState extends State<ViewTasks> {
                     const SizedBox(height: 10),
                     Expanded(
                       child: searchClientList.isEmpty
-                          ? Center(child: Text(ApiTextLocalizer.localize('No Client Found', locale: Localizations.localeOf(context))))
+                          ? const Center(child: Text('No Client Found'))
                           : ListView.builder(
                         shrinkWrap: true,
                         itemCount: searchClientList.length,
@@ -432,7 +432,7 @@ class _ViewTasksState extends State<ViewTasks> {
                                 Padding(
                                   padding: const EdgeInsets.all(5.0),
                                   child: Text(
-                                    ApiTextLocalizer.localize(searchClientList[index].displayName ?? "null", locale: Localizations.localeOf(context)),
+                                    searchClientList[index].displayName ?? "null",
                                     style: const TextStyle(fontSize: 18),
                                   ),
                                 ),

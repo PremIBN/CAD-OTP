@@ -9,9 +9,19 @@ class CusBtn extends StatelessWidget {
   final bool? btnColor;
   final Color? bGColor;
   final Color? textColor;
+  final bool localizeText;
   final VoidCallback onTap;
 
-  const CusBtn({super.key, required this.btnName, required this.onTap, this.loading = false,this.btnColor = false, this.bGColor, this.textColor});
+  const CusBtn({
+    super.key,
+    required this.btnName,
+    required this.onTap,
+    this.loading = false,
+    this.btnColor = false,
+    this.bGColor,
+    this.textColor,
+    this.localizeText = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +44,9 @@ class CusBtn extends StatelessWidget {
           child: loading == true
               ? const Center(child: CircularProgressIndicator(color: Colors.white,))
               : Text(
-                  ApiTextLocalizer.localize(btnName, locale: Localizations.localeOf(context)),
+                  localizeText
+                      ? ApiTextLocalizer.localize(btnName, locale: Localizations.localeOf(context))
+                      : btnName,
                   style: TextStyle(
                     color: textColor ?? (btnColor == true ? AppColor.background : Colors.white),
                     fontWeight: FontWeight.w600,

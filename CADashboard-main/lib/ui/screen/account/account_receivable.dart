@@ -195,7 +195,7 @@ class _AccountReceivableScreenState extends State<AccountReceivableScreen>
                       Padding(
                         padding: const EdgeInsets.all(5.0),
                         child: Text(
-                          ApiTextLocalizer.localize(search[index].toString(), locale: Localizations.localeOf(aRContext)),
+                          search[index].toString(),
                           style: const TextStyle(fontSize: 18),
                         ),
                       ),

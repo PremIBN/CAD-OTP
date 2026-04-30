@@ -579,7 +579,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(ApiTextLocalizer.localize('Add Task Note', locale: Localizations.localeOf(context))),
+                    const Text('Add Task Note'),
                     IconButton(
                       icon: const Icon(CupertinoIcons.mic_fill),
                       onPressed: () {
@@ -599,7 +599,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                     controller: addTaskNote,
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: ApiTextLocalizer.localize("Enter Note", locale: Localizations.localeOf(context)),
+                      hintText: 'Enter Note',
                       contentPadding: const EdgeInsets.all(10),
                       border: InputBorder.none,
                       focusedBorder: OutlineInputBorder(
@@ -620,7 +620,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                     onSaved: (newValue) { },
                     validator: (value) {
                       if(value == null || value == ""){
-                        return ApiTextLocalizer.localize("Please Enter Some Note.", locale: Localizations.localeOf(context));
+                        return 'Please Enter Some Note.';
                       }else{
                         return null;
                       }
@@ -636,7 +636,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           valueListenable: model.btnLoader,
                           builder: (context, value, child) {
                             return CusBtn(
-                              btnName: ApiTextLocalizer.localize('Submit', locale: Localizations.localeOf(context)),
+                              btnName: 'Submit',
+                              localizeText: false,
                               loading: value,
                               onTap: () {
                                 model.btnLoader.value = true;
@@ -654,7 +655,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                       const SizedBox(width: 10,),
                       Expanded(
                         child: CusBtn(
-                          btnName: ApiTextLocalizer.localize('Cancel', locale: Localizations.localeOf(context)),
+                          btnName: 'Cancel',
+                          localizeText: false,
                           btnColor: true,
                           onTap: () {
                             isAddNote.value = false;
@@ -688,7 +690,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
           child: StatefulBuilder(
             builder: (aContext, setState) {
               return AlertDialog(
-                title: Text(ApiTextLocalizer.localize('Add Actual Efforts', locale: Localizations.localeOf(aContext))),
+                title: const Text('Add Actual Efforts'),
                 content: Form(
                   key: effortFormKey,
                   child: SingleChildScrollView(
@@ -705,7 +707,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                                 decoration: InputDecoration(
-                                  hintText: ApiTextLocalizer.localize("Hours", locale: Localizations.localeOf(aContext)),
+                                  hintText: 'Hours',
                                   border: InputBorder.none,
                                   contentPadding: const EdgeInsets.all(8),
                                   focusedBorder: OutlineInputBorder(
@@ -726,7 +728,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                                 onSaved: (newValue) {},
                                 validator: (value) {
                                   if(value==""){
-                                    return ApiTextLocalizer.localize("Enter Hours", locale: Localizations.localeOf(aContext));
+                                    return 'Enter Hours';
                                   }else{
                                     return null;
                                   }
@@ -742,7 +744,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                                 decoration: InputDecoration(
-                                  hintText: ApiTextLocalizer.localize('Minutes', locale: Localizations.localeOf(aContext)),
+                                  hintText: 'Minutes',
                                   border: InputBorder.none,
                                   contentPadding: const EdgeInsets.all(8),
                                   focusedBorder: OutlineInputBorder(
@@ -761,7 +763,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                                 onSaved: (newValue) {},
                                 validator: (value) {
                                   if(value==""){
-                                    return ApiTextLocalizer.localize("Enter Minute", locale: Localizations.localeOf(aContext));
+                                    return 'Enter Minute';
                                   }else{
                                     return null;
                                   }
@@ -777,7 +779,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           hintLocales: AppLocaleController.inputHintLocales(context),
                           controller: model.effortDateController,
                           decoration: InputDecoration(
-                            hintText: ApiTextLocalizer.localize('Effort Date', locale: Localizations.localeOf(aContext)),
+                            hintText: 'Effort Date',
                             contentPadding:  const EdgeInsets.all(15),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
@@ -802,6 +804,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
 
                             model.effortDate = await showDatePicker(
                               context: context,
+                              locale: const Locale('en'),
                               initialDate: DateTime.now(),
                               firstDate: firstDate == null ? DateTime(DateTime.now().year - 1) : DateTime(DateTime.now().year, DateTime.now().month, (DateTime.now().day - firstDate)),
                               lastDate: DateTime.now(),
@@ -815,9 +818,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           validator: (value) {
                             int? firstDate = model.restrictTillDays;
                             return value?.isEmpty ?? true
-                              ? ApiTextLocalizer.localize("Please select effort date", locale: Localizations.localeOf(aContext))
+                              ? 'Please select effort date'
                               : firstDate != null && !(firstDate <= (DateTime.now().day - (model.effortDate?.day ?? 0)))
-                                ? ApiTextLocalizer.localize("Effort date restricted by $firstDate day", locale: Localizations.localeOf(aContext))
+                                ? 'Effort date restricted by $firstDate day'
                                 : null;
                           },
                         ),
@@ -863,7 +866,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           hintLocales: AppLocaleController.inputHintLocales(context),
                           controller: model.addTaskEffort,
                           decoration: InputDecoration(
-                            hintText: ApiTextLocalizer.localize('Effort Note', locale: Localizations.localeOf(aContext)),
+                            hintText: 'Effort Note',
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.all(8),
                             focusedBorder: OutlineInputBorder(
@@ -882,7 +885,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           onSaved: (newValue) {},
                           validator: (value) {
                             if(value==""){
-                              return ApiTextLocalizer.localize("Enter Note", locale: Localizations.localeOf(aContext));
+                              return 'Enter Note';
                             }else{
                               return null;
                             }
@@ -895,8 +898,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           children: [
                             Expanded(
                               child: CusDropDown(
-                                label: ApiTextLocalizer.localize('Approved', locale: Localizations.localeOf(aContext)),
-                                hint: ApiTextLocalizer.localize('select approved', locale: Localizations.localeOf(aContext)),
+                                label: 'Approved',
+                                hint: 'select approved',
                                 dropDownValue: billable[model.isApproved],
                                 radius: 15,
                                 items: billable.map((e) {
@@ -922,8 +925,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                             const SizedBox(width: 10,),
                             Expanded(
                               child: CusDropDown(
-                                label: ApiTextLocalizer.localize('Billable', locale: Localizations.localeOf(aContext)),
-                                hint: ApiTextLocalizer.localize('select billable', locale: Localizations.localeOf(aContext)),
+                                label: 'Billable',
+                                hint: 'select billable',
                                 dropDownValue: billable[model.isBillable],
                                 radius: 15,
                                 items: billable.map((e) {
@@ -960,7 +963,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           valueListenable: model.btnLoader,
                           builder: (context, value, child) {
                             return CusBtn(
-                              btnName: ApiTextLocalizer.localize('Submit', locale: Localizations.localeOf(aContext)),
+                              btnName: 'Submit',
+                              localizeText: false,
                               loading: value,
                               onTap: () async {
                                 isAddEffort.value = false;
@@ -978,7 +982,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                                       model.isApproved.toString()
                                     );
                                   } else if(model.effortDate == null) {
-                                    CommonFunction.showSnackBar(context: aContext, isError: true, message: ApiTextLocalizer.localize('Please Select Effort Date', locale: Localizations.localeOf(aContext)));
+                                    CommonFunction.showSnackBar(context: aContext, isError: true, message: 'Please Select Effort Date');
                                   }/* else if(model.isApproved == null) {
                                     CommonFunction.showSnackBar(context: Acontext, isError: true, message: 'Please Select Approved');
                                   } else if(model.isBillable == null){
@@ -996,7 +1000,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                       const SizedBox(width: 10,),
                       Expanded(
                         child: CusBtn(
-                          btnName: ApiTextLocalizer.localize('Cancel', locale: Localizations.localeOf(aContext)),
+                          btnName: 'Cancel',
+                          localizeText: false,
                           btnColor: true,
                           onTap: () {
                             isAddEffort.value = false;
