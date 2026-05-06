@@ -26,6 +26,7 @@ class PreferenceHelper {
   static const String attendanceIsSignedIn = "attendanceIsSignedIn";
   static const String attendanceSignInTime = "attendanceSignInTime";
   static const String attendanceSignOutTime = "attendanceSignOutTime";
+  static const String attendanceCacheDate = "attendanceCacheDate";
 
   // Last login context used for MarkAttendance
   static const String lastLoginDeviceID = "lastLoginDeviceID";

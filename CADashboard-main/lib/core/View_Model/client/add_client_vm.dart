@@ -277,7 +277,11 @@ class AddClientVM extends BaseModel {
         panNumberController.text = response.panNumber ?? "";
         referredController.text = response.referredBy ?? "";
         fileNumberController.text = response.fileNumber ?? "";
-        if (response.clientJoiningDate != null) startDateController.text = DateFormat('dd-MMM-yyyy').format(DateTime.parse(response.clientJoiningDate.toString()));
+        final joining = response.clientJoiningDate;
+        if (joining != null) {
+          startDateController.text = DateFormat('dd-MMM-yyyy').format(joining);
+          startDate = joining;
+        }
 
         client = response.clientTypeId;
         firm = response.firmTypeId;
@@ -285,8 +289,7 @@ class AddClientVM extends BaseModel {
         group = response.orgGroupId;
         branch = response.branch;
         clientSupplyTypeValue = response.clientSupplyType == 0 ? null : response.clientSupplyType;
-        if (response.clientJoiningDate != null) startDate = response.clientJoiningDate;
-        stdCode = int.parse(response.stdCode ?? "91");
+        stdCode = int.tryParse((response.stdCode ?? '91').toString().trim()) ?? 91;
 
         notifyListeners();
         getClientType(context);

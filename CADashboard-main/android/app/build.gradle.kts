@@ -35,8 +35,8 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 21
-        versionName = "1.0.20"
+        versionCode = 22
+        versionName = "1.0.21"
     }
 
     signingConfigs {
@@ -49,10 +49,10 @@ android {
     }
      buildTypes {
       
-getByName("debug") {
-            // Explicitly associate the debug signing config (optional, it's the default)
-            signingConfig = signingConfigs.getByName("debug")
-            // isDebuggable = true // This is also a default for the debug build type
+ getByName("release") {
+           signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
        
     }

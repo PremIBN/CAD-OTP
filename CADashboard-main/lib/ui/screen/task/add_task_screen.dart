@@ -40,6 +40,28 @@ class AddTakScreen extends StatefulWidget {
 class _AddTakScreenState extends State<AddTakScreen> {
 
   List<String?> bill = ['No','Yes'];
+  bool _submitFlash = false;
+  bool _cancelFlash = false;
+
+  Future<void> _flashButton({required bool isSubmit}) async {
+    if (!mounted) return;
+    setState(() {
+      if (isSubmit) {
+        _submitFlash = true;
+      } else {
+        _cancelFlash = true;
+      }
+    });
+    await Future.delayed(const Duration(milliseconds: 170));
+    if (!mounted) return;
+    setState(() {
+      if (isSubmit) {
+        _submitFlash = false;
+      } else {
+        _cancelFlash = false;
+      }
+    });
+  }
   
   int mandate = 0;
   int showOtherDetail = 0; 
@@ -57,6 +79,27 @@ class _AddTakScreenState extends State<AddTakScreen> {
 
   Widget cusDivider() {
     return  const SizedBox(height: 10);
+  }
+
+  Widget buildFieldLabel(BuildContext context, String label, {bool isRequired = false}) {
+    return RichText(
+      text: TextSpan(
+        text: ApiTextLocalizer.localize(label, locale: Localizations.localeOf(context)),
+        style: const TextStyle(
+          fontWeight: FontWeight.w800,
+          fontSize: 15,
+          color: Colors.black,
+        ),
+        children: isRequired
+            ? const [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ]
+            : const [],
+      ),
+    );
   }
 
   getMandateNumber() async{
@@ -127,12 +170,8 @@ class _AddTakScreenState extends State<AddTakScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-
                                   /// Task Name
-                                  Text(
-                                    ApiTextLocalizer.localize('Task Name', locale: Localizations.localeOf(addTaskContext)),
-                                    style:  const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),
-                                  ),
+                                  buildFieldLabel(addTaskContext, 'Task Name', isRequired: true),
                                   const SizedBox(height: 5,),
                                   TextFormField(
                                     hintLocales: AppLocaleController.inputHintLocales(context),
@@ -148,7 +187,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     onSaved: (newValue) {},
                                     validator: (value) {
                                       return value!.isEmpty
-                                          ? ApiTextLocalizer.localize("Please enter task name", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please enter task name"
                                           : null;
                                     },
                                   ),
@@ -157,6 +196,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   /// Services
                                   CusDropDown(
                                     label: ApiTextLocalizer.localize('Service Type', locale: Localizations.localeOf(addTaskContext)),
+                                    isRequired: true,
                                     hint: ApiTextLocalizer.localize('Select Service Type', locale: Localizations.localeOf(addTaskContext)),
                                     dropDownValue: model.service == 0 ? null : model.service,
                                     items: model.serviceList.map((e) {
@@ -181,7 +221,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     validator: (value) {
                                       return value == null
-                                          ? ApiTextLocalizer.localize("Please selected service type", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please selected service type"
                                           : null;
                                     },
                                   ),
@@ -189,6 +229,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   /// Status
                                   CusDropDown(
                                     label: ApiTextLocalizer.localize('Status', locale: Localizations.localeOf(addTaskContext)),
+                                    isRequired: true,
                                     hint: ApiTextLocalizer.localize('Select Status', locale: Localizations.localeOf(addTaskContext)),
                                     dropDownValue: model.status == 0 ? null : model.status,
                                     items: model.taskStatusList.map((e) {
@@ -211,16 +252,13 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     validator: (value) {
                                       return value == null
-                                          ? ApiTextLocalizer.localize("Please selected status", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please selected status"
                                           : null;
                                     },
                                   ),
 
                                   /// Employee
-                                  Text(
-                                    ApiTextLocalizer.localize('Assigned To', locale: Localizations.localeOf(addTaskContext)),
-                                    style: const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),
-                                  ),
+                                  buildFieldLabel(addTaskContext, 'Assigned To', isRequired: true),
                                   const SizedBox(height: 5,),
                                   TextFormField(
                                     hintLocales: AppLocaleController.inputHintLocales(context),
@@ -238,7 +276,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     onSaved: (newValue) {},
                                     validator: (value) {
                                       return value!.isEmpty
-                                          ? ApiTextLocalizer.localize("Please assigned to employee", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please assigned to employee"
                                           : null;
                                     },
                                     readOnly: true,
@@ -368,10 +406,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   ),
 
                                   /// Client
-                                  Text(
-                                    ApiTextLocalizer.localize('Client Name', locale: Localizations.localeOf(addTaskContext)),
-                                    style: const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),
-                                  ),
+                                  buildFieldLabel(addTaskContext, 'Client Name', isRequired: true),
                                   const SizedBox(height: 5,),
                                   TextFormField(
                                     hintLocales: AppLocaleController.inputHintLocales(context),
@@ -390,7 +425,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     onSaved: (newValue) {},
                                     validator: (value) {
                                       return value!.isEmpty
-                                          ? ApiTextLocalizer.localize("Please select client", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please select client"
                                           : null;
                                     },
                                     readOnly: true,
@@ -512,10 +547,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   if(widget.updateTask == false)Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        ApiTextLocalizer.localize('Task Note', locale: Localizations.localeOf(addTaskContext)),
-                                        style:  const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),
-                                      ),
+                                      buildFieldLabel(addTaskContext, 'Task Note'),
                                       const SizedBox(height: 5,),
                                       TextFormField(
                                         hintLocales: AppLocaleController.inputHintLocales(context),
@@ -538,10 +570,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   ),
 
                                   /// Start Date
-                                  Text(
-                                    ApiTextLocalizer.localize('Start Date', locale: Localizations.localeOf(addTaskContext)),
-                                    style:  const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),
-                                  ),
+                                  buildFieldLabel(addTaskContext, 'Start Date', isRequired: true),
                                   const SizedBox(height: 5,),
                                   TextFormField(
                                     hintLocales: AppLocaleController.inputHintLocales(context),
@@ -559,7 +588,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     onSaved: (newValue) {},
                                     validator: (value) {
                                       return value!.isEmpty
-                                          ? ApiTextLocalizer.localize("Please select start date", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please select start date"
                                           : null;
                                     },
                                     readOnly: true,
@@ -616,10 +645,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   cusDivider(),
 
                                   /// End Date
-                                  Text(
-                                    ApiTextLocalizer.localize('End Date', locale: Localizations.localeOf(addTaskContext)),
-                                    style:  const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),
-                                  ),
+                                  buildFieldLabel(addTaskContext, 'End Date', isRequired: true),
                                   const SizedBox(height: 5,),
                                   TextFormField(
                                     hintLocales: AppLocaleController.inputHintLocales(context),
@@ -637,7 +663,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     onSaved: (newValue) {},
                                     validator: (value) {
                                       return value!.isEmpty
-                                          ? ApiTextLocalizer.localize("Please select start date", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please select start date"
                                           : null;
                                     },
                                     readOnly: true,
@@ -705,6 +731,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   ///  Branch
                                   CusDropDown(
                                     label: ApiTextLocalizer.localize('Branch', locale: Localizations.localeOf(addTaskContext)),
+                                    isRequired: showOtherDetail == 1,
                                     hint: ApiTextLocalizer.localize('Select Branch', locale: Localizations.localeOf(addTaskContext)),
                                     dropDownValue: model.branch == 0 ? null : model.branch,
                                     items: model.branchList.map((e) {
@@ -728,7 +755,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     validator: (value) {
                                       if(showOtherDetail == 1){
                                         return value == null
-                                            ? ApiTextLocalizer.localize("Please selected branch", locale: Localizations.localeOf(addTaskContext))
+                                            ? "Please selected branch"
                                             : null;
                                       }else{
                                         return null;
@@ -739,6 +766,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   /// Department
                                   CusDropDown(
                                     label: ApiTextLocalizer.localize('Department', locale: Localizations.localeOf(addTaskContext)),
+                                    isRequired: showOtherDetail == 1,
                                     hint: ApiTextLocalizer.localize('Select Department', locale: Localizations.localeOf(addTaskContext)),
                                     dropDownValue: model.department == 0 ? null : model.department,
                                     items: model.departmentList.map((e) {
@@ -762,7 +790,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     validator: (value) {
                                       if(showOtherDetail == 1){
                                         return value == null
-                                            ? ApiTextLocalizer.localize("Please selected department", locale: Localizations.localeOf(addTaskContext))
+                                            ? "Please selected department"
                                             : null;
                                       }else{
                                         return null;
@@ -773,6 +801,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   /// Priority
                                   CusDropDown(
                                     label: ApiTextLocalizer.localize('Priority', locale: Localizations.localeOf(addTaskContext)),
+                                    isRequired: true,
                                     hint: ApiTextLocalizer.localize('Select Priority', locale: Localizations.localeOf(addTaskContext)),
                                     dropDownValue: model.priority == 0 ? null : model.priority,
                                     items: model.priorityList.map((e) {
@@ -796,7 +825,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     validator: (value) {
                                       // if(model.priority == null){return "Please selected priority";}else{return null;}
                                       return value == null
-                                          ? ApiTextLocalizer.localize("Please selected priority", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please selected priority"
                                           : null;
                                     },
                                   ),
@@ -804,6 +833,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                   ///  FinancialYear
                                   CusDropDown(
                                     label: ApiTextLocalizer.localize('Financial Year', locale: Localizations.localeOf(addTaskContext)),
+                                    isRequired: true,
                                     hint: ApiTextLocalizer.localize('Select Financial Year', locale: Localizations.localeOf(addTaskContext)),
                                     dropDownValue: model.fy == 0 ? null : model.fy,
                                     items: model.yearList.map((e) {
@@ -828,16 +858,13 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     },
                                     validator: (value) {
                                       return value == null
-                                          ? ApiTextLocalizer.localize("Please selected financial year", locale: Localizations.localeOf(addTaskContext))
+                                          ? "Please selected financial year"
                                           : null;
                                     },
                                   ),
 
                                   /// Mandate Number
-                                  Text(
-                                    ApiTextLocalizer.localize('Mandate Number', locale: Localizations.localeOf(addTaskContext)),
-                                    style:  const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),
-                                  ),
+                                  buildFieldLabel(addTaskContext, 'Mandate Number', isRequired: mandate == 1),
                                   const SizedBox(height: 5,),
                                   TextFormField(
                                     hintLocales: AppLocaleController.inputHintLocales(context),
@@ -854,7 +881,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                     validator: (value) {
                                       if(mandate == 1) {
                                         return value!.isEmpty
-                                            ? ApiTextLocalizer.localize("Please enter mandate number", locale: Localizations.localeOf(addTaskContext))
+                                            ? "Please enter mandate number"
                                             : null;
                                       }else{
                                         return null;
@@ -886,21 +913,13 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                         return Text(e ?? "");
                                       }).toList();
                                     },
-                                    validator: (value) {
-                                      return value == null
-                                          ? ApiTextLocalizer.localize("Please selected billable", locale: Localizations.localeOf(addTaskContext))
-                                          : null;
-                                    },
                                   ),
 
                                   ///  Amount
                                   if(model.billable != 0)Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        ApiTextLocalizer.localize('Amount', locale: Localizations.localeOf(addTaskContext)),
-                                        style:  const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),
-                                      ),
+                                      buildFieldLabel(addTaskContext, 'Amount', isRequired: model.billable != 0),
                                       cusDivider(),
                                       TextFormField(
                                         hintLocales: AppLocaleController.inputHintLocales(context),
@@ -945,7 +964,7 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                         onSaved: (newValue) {},
                                         validator: (value) {
                                           return value!.isEmpty
-                                              ? ApiTextLocalizer.localize("Please enter amount", locale: Localizations.localeOf(addTaskContext))
+                                              ? "Please enter amount"
                                               : null;
                                         },
                                       ),
@@ -960,9 +979,11 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                       children: [
                                         Expanded(
                                           child: InkWell(
-                                            onTap: () {
-                                              model.btnLoader.value = true;
-                                              if(formKey.currentState!.validate()){
+                                            onTap: () async {
+                                              final bool isValid = formKey.currentState!.validate();
+                                              if (isValid) {
+                                                await _flashButton(isSubmit: true);
+                                                model.btnLoader.value = true;
 
                                                 if(widget.updateSubTask == true && widget.parentID != null && widget.taskID != null){
                                                   appPrint('==========> Update Sub Task');
@@ -993,11 +1014,11 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                                 model.btnLoader.value = false;
                                               }
                                             },
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(30),
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                  color: AppColor.background,
-                                                  borderRadius: BorderRadius.circular(10)
+                                                  color: _submitFlash ? Colors.green : AppColor.background,
+                                                  borderRadius: BorderRadius.circular(30)
                                               ),
                                               child:  Center(child: Text(ApiTextLocalizer.localize('Submit', locale: Localizations.localeOf(addTaskContext)),style: const TextStyle(color: Colors.white,fontSize: 20))),
                                             ),
@@ -1006,14 +1027,15 @@ class _AddTakScreenState extends State<AddTakScreen> {
                                         const SizedBox(width: 10,),
                                         Expanded(
                                           child: InkWell(
-                                            borderRadius: BorderRadius.circular(10),
-                                            onTap: () {
+                                            borderRadius: BorderRadius.circular(30),
+                                            onTap: () async {
+                                              await _flashButton(isSubmit: false);
                                               Navigator.pop(addTaskContext);
                                             },
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                  color: AppColor.background.withValues(alpha: (0.7)),
-                                                  borderRadius: BorderRadius.circular(10)
+                                                  color: _cancelFlash ? Colors.red : AppColor.background,
+                                                  borderRadius: BorderRadius.circular(30)
                                               ),
                                               child:  Center(child: Text(ApiTextLocalizer.localize('Cancel', locale: Localizations.localeOf(addTaskContext)),style: const TextStyle(color: Colors.white,fontSize: 20))),
                                             ),

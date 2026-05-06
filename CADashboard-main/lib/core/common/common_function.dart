@@ -9,7 +9,7 @@ class CommonFunction {
   static Widget errorTextWidget(String title) {
     return Center(
       child: Text(
-        ApiTextLocalizer.localize(title),
+        title,
         style: const TextStyle(
           color: AppColor.background,
           fontWeight: FontWeight.w500,
@@ -23,19 +23,25 @@ class CommonFunction {
     return htmlParser.parse(htmlText).toString();
   }
 
+  /// Snackbar text is always shown in English ([message] as-is). Set [localizeMessage] to true
+  /// only for rare cases where a string must follow the app script (not used for errors/success).
   static void showSnackBar({
     required BuildContext context,
     required bool isError,
     required String message,
-    bool localizeMessage = true,
+    bool localizeMessage = false,
+    /// When set, used instead of red / success green (e.g. info blue for neutral notices).
+    Color? backgroundColor,
   }) {
     if (!context.mounted) return;
     final msg = localizeMessage
         ? ApiTextLocalizer.localize(message, locale: Localizations.localeOf(context))
         : message;
+    final Color bg = backgroundColor ??
+        (isError ? Colors.red : AppColor.logoColor);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       duration: const Duration(seconds: 3),
-      backgroundColor: isError ? Colors.red : AppColor.logoColor,
+      backgroundColor: bg,
       content: Text(
         msg,
         style: const TextStyle(color: Colors.white),
@@ -76,24 +82,23 @@ class CommonFunction {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        final locale = Localizations.localeOf(context);
         return AlertDialog(
-          title: Text(ApiTextLocalizer.localize(title, locale: locale)),
-          content: Text(ApiTextLocalizer.localize(subTitle, locale: locale), style: const TextStyle(fontSize: 15)),
+          title: Text(title),
+          content: Text(subTitle, style: const TextStyle(fontSize: 15)),
           actions: [
             TextButton(
               style: ButtonStyle(
                 backgroundColor: WidgetStatePropertyAll(AppColor.background.withValues(alpha: (0.1))),
               ),
               onPressed: onYes,
-              child: Text(ApiTextLocalizer.localize('Yes', locale: locale)),
+              child: const Text('Yes'),
             ),
             TextButton(
               style: const ButtonStyle(
                 backgroundColor: WidgetStatePropertyAll(AppColor.background),
               ),
               onPressed: onNo,
-              child: Text(ApiTextLocalizer.localize('No', locale: locale), style: const TextStyle(color: Colors.white)),
+              child: const Text('No', style: TextStyle(color: Colors.white)),
             )
           ],
         );

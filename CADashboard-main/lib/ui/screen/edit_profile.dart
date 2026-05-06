@@ -79,7 +79,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     icon: const Icon(CupertinoIcons.person),
                     onValidator: (value) {
                       return usernameController.text.isEmpty
-                          ? ApiTextLocalizer.localize('Please enter username', locale: Localizations.localeOf(context))
+                          ? 'Please enter username'
                           : null;
                     },
                   ),
@@ -105,7 +105,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   CommonFunction.showSnackBar(
                     context: context,
                     isError: false,
-                    message: ApiTextLocalizer.localize('Profile update successfully', locale: Localizations.localeOf(context)),
+                    message: 'Profile update successfully',
                   );
                 }else{
                   appPrint('No');

@@ -161,12 +161,12 @@ class DocumentScreen extends StatelessWidget {
               backgroundColor: isRootLevel ? _DocTheme.background : null,
               appBar: AppBar(
                 title: Text(
-                  ApiTextLocalizer.localize(
-                    model.canGoBack && model.currentTitle.isNotEmpty
-                        ? model.currentTitle
-                        : 'Documents',
-                    locale: Localizations.localeOf(buildContext),
-                  ),
+                  model.canGoBack && model.currentTitle.isNotEmpty
+                      ? model.currentTitle
+                      : ApiTextLocalizer.localize(
+                          'Documents',
+                          locale: Localizations.localeOf(buildContext),
+                        ),
                 ),
                 backgroundColor: isRootLevel ? _DocTheme.surface : null,
                 foregroundColor: isRootLevel ? _DocTheme.textPrimary : null,
@@ -405,8 +405,8 @@ class DocumentScreen extends StatelessWidget {
                                 ? Center(
                                     child: Text(
                                       searchQuery.trim().isEmpty
-                                          ? ApiTextLocalizer.localize('No clients', locale: Localizations.localeOf(context))
-                                          : ApiTextLocalizer.localize('No matching clients', locale: Localizations.localeOf(context)),
+                                          ? 'No clients'
+                                          : 'No matching clients',
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                             color: Theme.of(context).hintColor,
                                           ),
@@ -1098,10 +1098,7 @@ class DocumentScreen extends StatelessWidget {
                     return ListTile(
                       leading: const Icon(Icons.folder_outlined),
                       title: Text(
-                        ApiTextLocalizer.localize(
-                          f.folderName.isNotEmpty ? f.folderName : 'Folder',
-                          locale: Localizations.localeOf(context),
-                        ),
+                        f.folderName.isNotEmpty ? f.folderName : 'Folder',
                       ),
                       onTap: () {
                         Navigator.pop(ctx);
@@ -1841,7 +1838,9 @@ class _DocumentBody extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  ApiTextLocalizer.localize('Move "$itemLabel" to', locale: Localizations.localeOf(context)),
+                  '${ApiTextLocalizer.localize('Move', locale: Localizations.localeOf(context))} '
+                  '"$itemLabel" '
+                  '${ApiTextLocalizer.localize('to', locale: Localizations.localeOf(context))}',
                   style: Theme.of(ctx).textTheme.titleMedium,
                 ),
               ),
@@ -1855,10 +1854,7 @@ class _DocumentBody extends StatelessWidget {
                     return ListTile(
                       leading: const Icon(Icons.folder_outlined),
                       title: Text(
-                        ApiTextLocalizer.localize(
-                          f.folderName.isNotEmpty ? f.folderName : 'Folder',
-                          locale: Localizations.localeOf(context),
-                        ),
+                        f.folderName.isNotEmpty ? f.folderName : 'Folder',
                       ),
                       onTap: () {
                         Navigator.pop(ctx);
@@ -1971,10 +1967,7 @@ class _FolderListTile extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    ApiTextLocalizer.localize(
-                      folder.folderName.isNotEmpty ? folder.folderName : 'Folder',
-                      locale: Localizations.localeOf(context),
-                    ),
+                    folder.folderName.isNotEmpty ? folder.folderName : 'Folder',
                     style: TextStyle(fontSize: fontSize, color: textColor),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -2201,30 +2194,31 @@ class _FileListTile extends StatelessWidget {
                   },
                   itemBuilder: (ctx) {
                     final isLocked = file.isLocked == 1;
+                    final loc = Localizations.localeOf(ctx);
                     return [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'preview',
                         child: ListTile(
-                          leading: Icon(Icons.visibility),
-                          title: Text('View / Preview'),
+                          leading: const Icon(Icons.visibility),
+                          title: Text(ApiTextLocalizer.localize('View / Preview', locale: loc)),
                           dense: true,
                         ),
                       ),
                       if (MenuRepository.canShareDocument)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'share',
                           child: ListTile(
-                            leading: Icon(Icons.share),
-                            title: Text('Share Document'),
+                            leading: const Icon(Icons.share),
+                            title: Text(ApiTextLocalizer.localize('Share Document', locale: loc)),
                             dense: true,
                           ),
                         ),
                       if (MenuRepository.canShareDocument)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'unshare',
                           child: ListTile(
-                            leading: Icon(Icons.link_off),
-                            title: Text('Un-share Document'),
+                            leading: const Icon(Icons.link_off),
+                            title: Text(ApiTextLocalizer.localize('Un-share Document', locale: loc)),
                             dense: true,
                           ),
                         ),
@@ -2238,11 +2232,11 @@ class _FileListTile extends StatelessWidget {
                       //   ),
                       // ),
                       if (MenuRepository.canDownloadDocument)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'download',
                           child: ListTile(
-                            leading: Icon(Icons.download),
-                            title: Text('Download'),
+                            leading: const Icon(Icons.download),
+                            title: Text(ApiTextLocalizer.localize('Download', locale: loc)),
                             dense: true,
                           ),
                         ),
@@ -2250,7 +2244,12 @@ class _FileListTile extends StatelessWidget {
                         value: isLocked ? 'unlock' : 'lock',
                         child: ListTile(
                           leading: Icon(isLocked ? Icons.lock_open : Icons.lock),
-                          title: Text(isLocked ? 'Unlock Document' : 'Lock Document'),
+                          title: Text(
+                            ApiTextLocalizer.localize(
+                              isLocked ? 'Unlock Document' : 'Lock Document',
+                              locale: loc,
+                            ),
+                          ),
                           dense: true,
                         ),
                       ),

@@ -17,6 +17,16 @@ class AttendanceRepository {
 
   Future<TodayAttendance> getTodayAttendance() async {
     final prefs = await SharedPreferences.getInstance();
+    final todayKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final cachedDayKey = prefs.getString(PreferenceHelper.attendanceCacheDate);
+    if (cachedDayKey != todayKey) {
+      // New day: clear local attendance cache so card starts from "--".
+      await prefs.remove(PreferenceHelper.attendanceSignInTime);
+      await prefs.remove(PreferenceHelper.attendanceSignOutTime);
+      await prefs.setBool(PreferenceHelper.attendanceIsSignedIn, false);
+      await prefs.setString(PreferenceHelper.attendanceCacheDate, todayKey);
+    }
+
     final remote = await _fetchRemoteAttendanceState(prefs);
     bool? signedInFromRemote;
     if (remote?.signedIn != null) {
@@ -33,6 +43,8 @@ class AttendanceRepository {
           PreferenceHelper.attendanceSignInTime,
           inAt.toIso8601String(),
         );
+      } else {
+        await prefs.remove(PreferenceHelper.attendanceSignInTime);
       }
       if (outAt != null) {
         await prefs.setString(

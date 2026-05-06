@@ -64,7 +64,7 @@ class CusField extends StatelessWidget {
       validator: (value) {
         final res = onValidator?.call(value);
         if (res == null) return null;
-        return ApiTextLocalizer.localize(res.toString(), locale: locale);
+        return res.toString();
       },
     );
   }

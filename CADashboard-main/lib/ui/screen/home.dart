@@ -520,7 +520,7 @@ class _AttendanceCard extends StatelessWidget {
                           child: ValueListenableBuilder<DateTime?>(
                             valueListenable: model.attendanceSignInAt,
                             builder: (context, inAt, _) {
-                              final txt = inAt == null ? '-' : timeFmt.format(inAt);
+                              final txt = inAt == null ? '--' : timeFmt.format(inAt);
                               return _kv(ApiTextLocalizer.localize('First Sign In', locale: locale), txt);
                             },
                           ),
@@ -529,7 +529,7 @@ class _AttendanceCard extends StatelessWidget {
                           child: ValueListenableBuilder<DateTime?>(
                             valueListenable: model.attendanceSignOutAt,
                             builder: (context, outAt, _) {
-                              final txt = outAt == null ? '-' : timeFmt.format(outAt);
+                              final txt = outAt == null ? '--' : timeFmt.format(outAt);
                               return _kv(ApiTextLocalizer.localize('Last Sign Out', locale: locale), txt);
                             },
                           ),

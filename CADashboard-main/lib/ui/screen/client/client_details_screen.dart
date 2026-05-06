@@ -80,7 +80,7 @@ class _ClientDetailsState extends State<ClientDetails> with TickerProviderStateM
                     if (!MenuRepository.canUpdateClient) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(ApiTextLocalizer.localize('You do not have permission to edit', locale: locale)),
+                          content: const Text('You do not have permission to edit'),
                         ),
                       );
                       return;

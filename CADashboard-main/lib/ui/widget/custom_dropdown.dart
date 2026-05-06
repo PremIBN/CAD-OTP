@@ -11,10 +11,11 @@ class CusDropDown extends StatelessWidget {
   final List<DropdownMenuItem> items;
   final ValueChanged? onChanged;
   final DropdownButtonBuilder? selectedItemBuilder;
+  final bool isRequired;
   FormFieldValidator? validator;
   VoidCallback? onTap;
 
-  CusDropDown({super.key, required this.label, this.dropDownValue, required this.items, this.onChanged, this.selectedItemBuilder, this.validator, required this.hint, this.onTap, this.radius});
+  CusDropDown({super.key, required this.label, this.dropDownValue, required this.items, this.onChanged, this.selectedItemBuilder, this.validator, required this.hint, this.onTap, this.radius, this.isRequired = false});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +33,24 @@ class CusDropDown extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,style:  const TextStyle(fontWeight: FontWeight.w800,fontSize: 15),),
+        RichText(
+          text: TextSpan(
+            text: label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+              color: Colors.black,
+            ),
+            children: isRequired
+                ? const [
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ]
+                : const [],
+          ),
+        ),
         const SizedBox(height: 10),
         DropdownButtonFormField(
           isExpanded: true,

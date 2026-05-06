@@ -22,17 +22,9 @@ class AppLocaleController {
     await AppLocaleService.saveLanguageCode(trimmed);
   }
 
-  /// Preferred input locales for keyboard/spell hints:
-  /// selected app language first, then English fallback.
+  /// Keep input hints fixed to English regardless of app language.
   static List<Locale> inputHintLocales(BuildContext context) {
-    final selected = locale.value ?? Localizations.localeOf(context);
-    final lang = selected.languageCode.trim().toLowerCase();
-    final isSupported = AppLocaleService.supportedLanguageCodes.contains(lang);
-    final primary = isSupported ? Locale(lang) : _englishLocale;
-    if (primary.languageCode == _englishLocale.languageCode) {
-      return const [_englishLocale];
-    }
-    return [primary, _englishLocale];
+    return const [_englishLocale];
   }
 }
 

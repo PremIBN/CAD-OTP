@@ -10,6 +10,7 @@ import 'package:cadashboard/ui/screen/login_screen.dart';
 import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cadashboard/core/common/common_function.dart';
+import 'package:cadashboard/core/utils/colors.dart';
 import 'package:cadashboard/core/utils/preference_helper.dart';
 import 'package:cadashboard/core/repository/menu_repository.dart';
 import 'package:cadashboard/core/repository/attendance_repository.dart';
@@ -170,6 +171,24 @@ class HomeVM extends BaseModel {
     if (attendanceLoading.value) return;
     attendanceLoading.value = true;
     try {
+      // GetAttendanceDetails first: user may already be signed in from web or another device.
+      final current = await attendanceRepo.getTodayAttendance();
+      if (current.isSignedIn) {
+        attendanceSignedIn.value = true;
+        attendanceSignInAt.value = current.signInAt;
+        attendanceSignOutAt.value = current.signOutAt;
+        if (context.mounted) {
+          CommonFunction.showSnackBar(
+            context: context,
+            isError: false,
+            message: 'You have already signed in',
+            backgroundColor: AppColor.background,
+          );
+          await loadAttendanceHistory(DateTime.now());
+        }
+        return;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final tokenId = prefs.getString(PreferenceHelper.userToken) ?? '';
       final loginDetailId = prefs.getString(PreferenceHelper.loginDetailID) ?? '';
@@ -183,14 +202,18 @@ class HomeVM extends BaseModel {
           isError: false,
           message: 'You Have Successfully Sign In',
         );
+        await loadAttendanceHistory(DateTime.now());
       }
     } catch (e) {
       await _syncAttendanceStateSilently();
       if (context.mounted) {
+        final raw = e.toString().replaceFirst('Exception: ', '');
+        final alreadyIn = _isAttendanceAlreadyMarkedMessage(raw);
         CommonFunction.showSnackBar(
           context: context,
-          isError: true,
-          message: e.toString().replaceFirst('Exception: ', ''),
+          isError: !alreadyIn,
+          message: alreadyIn ? 'You have already signed in' : raw,
+          backgroundColor: alreadyIn ? AppColor.background : null,
         );
       }
     } finally {
@@ -202,6 +225,24 @@ class HomeVM extends BaseModel {
     if (attendanceLoading.value) return;
     attendanceLoading.value = true;
     try {
+      // GetAttendanceDetails first: user may already be signed out from web or another device.
+      final current = await attendanceRepo.getTodayAttendance();
+      if (!current.isSignedIn) {
+        attendanceSignedIn.value = false;
+        attendanceSignInAt.value = current.signInAt;
+        attendanceSignOutAt.value = current.signOutAt;
+        if (context.mounted) {
+          CommonFunction.showSnackBar(
+            context: context,
+            isError: false,
+            message: 'You have already signed out',
+            backgroundColor: AppColor.background,
+          );
+          await loadAttendanceHistory(DateTime.now());
+        }
+        return;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final tokenId = prefs.getString(PreferenceHelper.userToken) ?? '';
       final loginDetailId = prefs.getString(PreferenceHelper.loginDetailID) ?? '';
@@ -215,15 +256,18 @@ class HomeVM extends BaseModel {
           isError: false,
           message: 'You Have Successfully Sign Out',
         );
+        await loadAttendanceHistory(DateTime.now());
       }
     } catch (e) {
       await _syncAttendanceStateSilently();
       if (context.mounted) {
-        final msg = e.toString().replaceFirst('Exception: ', '');
+        final raw = e.toString().replaceFirst('Exception: ', '');
+        final alreadyOut = _isAttendanceAlreadySignedOutMessage(raw);
         CommonFunction.showSnackBar(
           context: context,
-          isError: true,
-          message: msg,
+          isError: !alreadyOut,
+          message: alreadyOut ? 'You have already signed out' : raw,
+          backgroundColor: alreadyOut ? AppColor.background : null,
         );
       }
     } finally {
@@ -246,7 +290,18 @@ class HomeVM extends BaseModel {
     final m = message.toLowerCase();
     return m.contains('attendance is marked') ||
         m.contains('attendance already marked') ||
-        m.contains('already marked');
+        m.contains('already marked') ||
+        m.contains('already signed in');
+  }
+
+  bool _isAttendanceAlreadySignedOutMessage(String message) {
+    final m = message.toLowerCase();
+    return m.contains('already signed out') ||
+        m.contains('already sign out') ||
+        m.contains('not signed in') ||
+        m.contains('no active sign in') ||
+        m.contains('sign out already') ||
+        m.contains('already logged out');
   }
 
   Future<void> loadAttendanceHistory(DateTime date) async {
@@ -317,7 +372,6 @@ class HomeVM extends BaseModel {
                     context: context,
                     isError: false,
                     message: message,
-                    localizeMessage: false,
                   );
                   preferences.setString(PreferenceHelper.userToken, 'null');
                   preferences.setBool(PreferenceHelper.isSignIn, false);

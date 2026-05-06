@@ -45,7 +45,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       visible: !model.visiable1,
                       onValidator: (value) {
                         return model.oldController.text.isEmpty
-                            ? ApiTextLocalizer.localize('Old password is empty', locale: Localizations.localeOf(buildContext))
+                            ? 'Old password is empty'
                             : null;
                       },
                       suffixIcon: IconButton(
@@ -72,12 +72,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       onValidator: (value) {
                         appPrint(Utils.isPassword(model.newController.text));
                         return model.newController.text.isEmpty
-                            ? ApiTextLocalizer.localize('New password is empty', locale: Localizations.localeOf(buildContext))
+                            ? 'New password is empty'
                             : Utils.isPassword(model.newController.text) == false
-                              ? ApiTextLocalizer.localize(
-                                  'Make one Capital letter, one small letter, one number and 1 special character compulsory',
-                                  locale: Localizations.localeOf(buildContext),
-                                )
+                              ? 'Make one Capital letter, one small letter, one number and 1 special character compulsory'
                               : null;
                       },
                     ),

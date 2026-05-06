@@ -25,6 +25,28 @@ class AddClientScreen extends StatefulWidget {
 }
 
 class _AddClientScreenState extends State<AddClientScreen> {
+  bool _submitFlash = false;
+  bool _cancelFlash = false;
+
+  Future<void> _flashButton({required bool isSubmit}) async {
+    if (!mounted) return;
+    setState(() {
+      if (isSubmit) {
+        _submitFlash = true;
+      } else {
+        _cancelFlash = true;
+      }
+    });
+    await Future.delayed(const Duration(milliseconds: 170));
+    if (!mounted) return;
+    setState(() {
+      if (isSubmit) {
+        _submitFlash = false;
+      } else {
+        _cancelFlash = false;
+      }
+    });
+  }
 
   InputBorder borders = OutlineInputBorder(
       borderRadius: BorderRadius.circular(25),
@@ -55,6 +77,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
     required String hint,
     required Widget prefix,
     required TextEditingController controller,
+    bool isRequired = false,
     TextInputType? keyboardType,
     List<TextInputFormatter>? inputFormatters,
     ValueChanged? onChanged,
@@ -64,9 +87,19 @@ class _AddClientScreenState extends State<AddClientScreen> {
       children: [
         Builder(
           builder: (context) {
-            return Text(
-              ApiTextLocalizer.localize(label, locale: Localizations.localeOf(context)),
-              style: _addClientLabelStyle,
+            return RichText(
+              text: TextSpan(
+                text: ApiTextLocalizer.localize(label, locale: Localizations.localeOf(context)),
+                style: _addClientLabelStyle.copyWith(color: Colors.black),
+                children: isRequired
+                    ? const [
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ]
+                    : const [],
+              ),
             );
           },
         ),
@@ -156,10 +189,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     controller: model.companyNameController,
                                     label: 'Company Name',
                                     hint: 'Enter Company Name',
+                                    isRequired: true,
                                     prefix: Image.asset(AppImages.company,width: 25,height: 25,),
                                     onValidator: (value) {
                                       return model.companyNameController.text.isEmpty
-                                          ? ApiTextLocalizer.localize('Please enter company name', locale: Localizations.localeOf(buildContext))
+                                          ? 'Please enter company name'
                                           : null;
                                     },
                                   ),
@@ -168,10 +202,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     controller: model.firstNameController,
                                     label: 'First Name',
                                     hint: 'Enter First Name',
+                                    isRequired: true,
                                     prefix: const Icon(Icons.person_outlined),
                                     onValidator: (value) {
                                       return model.firstNameController.text.isEmpty
-                                          ? ApiTextLocalizer.localize('PLease enter first name', locale: Localizations.localeOf(buildContext))
+                                          ? 'PLease enter first name'
                                           : null;
                                     },
                                   ),
@@ -180,16 +215,18 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     controller: model.lastNameController,
                                     label: 'Last Name',
                                     hint: 'Enter Last Name',
+                                    isRequired: true,
                                     prefix: const Icon(Icons.person_outlined),
                                     onValidator: (value) {
                                       return model.lastNameController.text.isEmpty
-                                          ? ApiTextLocalizer.localize('PLease enter last name', locale: Localizations.localeOf(buildContext))
+                                          ? 'PLease enter last name'
                                           : null;
                                     },
                                   ),
 
                                   CusDropDown(
                                     label: ApiTextLocalizer.localize('Client Type', locale: Localizations.localeOf(buildContext)),
+                                    isRequired: false,
                                     hint: ApiTextLocalizer.localize('Please Select Client Type', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.client == 0 ? null : model.client,
                                     items: model.clientType.map((e) {
@@ -209,11 +246,6 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       return model.clientType.map((e){
                                         return Text(e.displayName ?? "", style: _addClientFieldStyle);
                                       }).toList();
-                                    },
-                                    validator: (value) {
-                                      return value == null
-                                          ? ApiTextLocalizer.localize('Please select client type', locale: Localizations.localeOf(buildContext))
-                                          : null;
                                     },
                                   ),
 
@@ -291,6 +323,7 @@ class _AddClientScreenState extends State<AddClientScreen> {
 
                                   CusDropDown(
                                     label: ApiTextLocalizer.localize('STD Code', locale: Localizations.localeOf(buildContext)),
+                                    isRequired: false,
                                     hint: ApiTextLocalizer.localize('Please Select STD Code', locale: Localizations.localeOf(buildContext)),
                                     dropDownValue: model.stdCode == 0 ? null : model.stdCode,
                                     items: model.stdCodeType.map((e) {
@@ -317,9 +350,6 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                           style: _addClientFieldStyle,
                                         );
                                       }).toList();
-                                    },
-                                    validator: (value) {
-                                      return value == null ? 'Please select std code' : null;
                                     },
                                   ),
 
@@ -465,10 +495,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                     controller: model.panNumberController,
                                     label: 'PAN Number',
                                     hint: 'Enter PAN Number',
+                                    isRequired: true,
                                     prefix: const Icon(CupertinoIcons.creditcard),
                                     onValidator: (value) {
                                       return model.panNumberController.text.isEmpty
-                                          ? ApiTextLocalizer.localize('PLease enter PAN number', locale: Localizations.localeOf(buildContext))
+                                          ? 'PLease enter PAN number'
                                           : null;
                                       /*model.panRepo.checkPAN(panNumber: value).then((value){return value;}) != 0 ? 'PAN number already exists ' : null;*/
                                     },
@@ -501,9 +532,11 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                       children: [
                                         Expanded(
                                           child: GestureDetector(
-                                            onTap: () {
-                                              model.loading.value = true;
-                                              if(formkey.currentState!.validate()){
+                                            onTap: () async {
+                                              final bool isValid = formkey.currentState!.validate();
+                                              if (isValid) {
+                                                await _flashButton(isSubmit: true);
+                                                model.loading.value = true;
 
                                                 appPrint("Client Data :->: ${model.panNumberController.text.trim()} : ${model.firm} : ${model.industry} : ${model.group} : ${model.client} : ${model.branch}");
 
@@ -544,8 +577,8 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                             },
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                color: AppColor.background,
-                                                borderRadius: BorderRadius.circular(8.0),
+                                                color: _submitFlash ? Colors.green : AppColor.background,
+                                                borderRadius: BorderRadius.circular(30),
                                               ),
                                               child: Center(
                                                 child: Text(
@@ -559,13 +592,14 @@ class _AddClientScreenState extends State<AddClientScreen> {
                                         SizedBox(width: MediaQuery.of(context).size.width * 0.05,),
                                         Expanded(
                                           child: GestureDetector(
-                                            onTap: () {
+                                            onTap: () async {
+                                              await _flashButton(isSubmit: false);
                                               Navigator.pop(context);
                                             },
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                color: AppColor.background.withValues(alpha: (0.7)),
-                                                borderRadius: BorderRadius.circular(8.0)
+                                                color: _cancelFlash ? Colors.red : AppColor.background,
+                                                borderRadius: BorderRadius.circular(30)
                                               ),
                                               
                                               child: Center(

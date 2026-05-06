@@ -6,6 +6,7 @@ import 'package:cadashboard/core/common/common_function.dart';
 import 'package:cadashboard/core/common/common_loader.dart';
 import 'package:cadashboard/core/common/empty_data.dart';
 import 'package:cadashboard/core/model/task/add_task/GetTaskRelatedDropDowns_model.dart';
+import 'package:cadashboard/core/utils/colors.dart';
 import 'package:cadashboard/core/utils/stateless_base_view.dart';
 import 'package:cadashboard/core/utils/utils.dart';
 import 'package:cadashboard/core/utils/view_state.dart';
@@ -94,9 +95,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
             SnackBar(
               backgroundColor: Colors.amber,
               behavior: SnackBarBehavior.floating,
-              content: Text(
-                ApiTextLocalizer.localize("You don't have permission to update", locale: locale),
-                style: const TextStyle(color: Colors.black),
+              content: const Text(
+                "You don't have permission to update",
+                style: TextStyle(color: Colors.black),
               ),
             ),
           );
@@ -120,7 +121,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                 Icon(Icons.warning_amber_rounded, size: 56, color: Colors.amber[700]),
                 const SizedBox(height: 20),
                 Text(
-                  ApiTextLocalizer.localize("You don't have permission to update", locale: locale),
+                  "You don't have permission to update",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16, color: Colors.grey[800], fontWeight: FontWeight.w500),
                 ),
@@ -639,6 +640,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                               btnName: 'Submit',
                               localizeText: false,
                               loading: value,
+                              flashColor: Colors.green,
+                              borderRadius: 30,
+                              shouldFlash: () => noteFormKey.currentState?.validate() ?? false,
                               onTap: () {
                                 model.btnLoader.value = true;
                                 if(noteFormKey.currentState!.validate()){
@@ -657,7 +661,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                         child: CusBtn(
                           btnName: 'Cancel',
                           localizeText: false,
-                          btnColor: true,
+                          bGColor: AppColor.background,
+                          textColor: Colors.white,
+                          flashColor: Colors.red,
+                          borderRadius: 30,
                           onTap: () {
                             isAddNote.value = false;
                             Navigator.pop(context);
@@ -799,15 +806,18 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           onTap: () async {
 
                             await model.getRestrictTillDays();
-                            int? firstDate = model.restrictTillDays;
-                            appPrint("Date : $firstDate");
+                            final int limit = model.restrictTillDays ?? 0;
+                            final DateTime now = DateTime.now();
+                            final DateTime today = DateTime(now.year, now.month, now.day);
+                            final DateTime earliest = today.subtract(Duration(days: limit));
+                            appPrint("Date limit : $limit");
 
                             model.effortDate = await showDatePicker(
                               context: context,
                               locale: const Locale('en'),
-                              initialDate: DateTime.now(),
-                              firstDate: firstDate == null ? DateTime(DateTime.now().year - 1) : DateTime(DateTime.now().year, DateTime.now().month, (DateTime.now().day - firstDate)),
-                              lastDate: DateTime.now(),
+                              initialDate: today,
+                              firstDate: earliest,
+                              lastDate: today,
                             );
                             if(model.effortDate != null){
                               model.effortDateController.text = DateFormat('dd-MMM-yyyy').format(model.effortDate!);
@@ -816,12 +826,21 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                           },
                           onSaved: (newValue) {},
                           validator: (value) {
-                            int? firstDate = model.restrictTillDays;
-                            return value?.isEmpty ?? true
-                              ? 'Please select effort date'
-                              : firstDate != null && !(firstDate <= (DateTime.now().day - (model.effortDate?.day ?? 0)))
-                                ? 'Effort date restricted by $firstDate day'
-                                : null;
+                            final int limit = model.restrictTillDays ?? 0;
+                            final DateTime? selected = model.effortDate;
+                            if ((value?.isEmpty ?? true) || selected == null) {
+                              return 'Please select effort date';
+                            }
+
+                            final DateTime now = DateTime.now();
+                            final DateTime today = DateTime(now.year, now.month, now.day);
+                            final DateTime picked = DateTime(selected.year, selected.month, selected.day);
+                            final int diff = today.difference(picked).inDays;
+
+                            if (diff < 0 || diff > limit) {
+                              return 'Effort date restricted by $limit day';
+                            }
+                            return null;
                           },
                         ),
 
@@ -966,6 +985,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                               btnName: 'Submit',
                               localizeText: false,
                               loading: value,
+                              flashColor: Colors.green,
+                              borderRadius: 30,
+                              shouldFlash: () => (effortFormKey.currentState?.validate() ?? false) && model.effortDate != null,
                               onTap: () async {
                                 isAddEffort.value = false;
                                 model.btnLoader.value = true;
@@ -1002,7 +1024,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> with SingleTicker
                         child: CusBtn(
                           btnName: 'Cancel',
                           localizeText: false,
-                          btnColor: true,
+                          bGColor: AppColor.background,
+                          textColor: Colors.white,
+                          flashColor: Colors.red,
+                          borderRadius: 30,
                           onTap: () {
                             isAddEffort.value = false;
                             Navigator.pop(context);
