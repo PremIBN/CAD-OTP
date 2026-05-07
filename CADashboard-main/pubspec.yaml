@@ -57,6 +57,7 @@ dependencies:
   upgrader: ^12.5.0
   firebase_crashlytics: ^5.0.7
   firebase_core: ^4.4.0
+  firebase_auth: ^6.0.0
   flutter_local_notifications: ^19.3.0
   firebase_messaging: ^16.1.1
   fluttertoast: ^9.0.0

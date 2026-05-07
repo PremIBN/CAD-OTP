@@ -10,6 +10,7 @@ import 'package:cadashboard/ui/widget/custom_navigate.dart';
 import 'package:cadashboard/ui/widget/custom_textfield.dart';
 import 'package:cadashboard/ui/widget/upgrade_app.dart';
 import 'package:cadashboard/ui/screen/forgot_password.dart';
+import 'package:cadashboard/ui/screen/otp_login/otp_phone_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -268,6 +269,55 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                               );
                             },
+                          ),
+                          SizedBox(height: size.height * 0.02),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  color: AppColor.background.withValues(alpha: 0.25),
+                                  thickness: 1,
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'OR',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  color: AppColor.background.withValues(alpha: 0.25),
+                                  thickness: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: size.height * 0.015),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: OutlinedButton.icon(
+                              icon: const Icon(Icons.phone_android),
+                              label: const Text(
+                                'Continue with OTP',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColor.background,
+                                side: const BorderSide(color: AppColor.background, width: 1.2),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.push(context, cusNavigate(const OtpPhoneScreen()));
+                              },
+                            ),
                           ),
                         ],
                       ),

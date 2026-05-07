@@ -48,6 +48,7 @@ class LoginVM extends BaseModel {
   static const Duration _deviceInfoTimeout = Duration(seconds: 12);
   static const Duration _prefsTimeout = Duration(seconds: 12);
   static const Duration _notificationPermissionTimeout = Duration(seconds: 20);
+  static const Duration _microphonePermissionTimeout = Duration(seconds: 20);
 
   /// Runs after Home is shown. Must not block navigation on login success (App Store review / slow devices).
   Future<void> _requestNotificationPermissionAfterLogin() async {
@@ -71,6 +72,35 @@ class LoginVM extends BaseModel {
     } catch (e, st) {
       log('LoginVM: notification permission timeout or error: $e');
       log('LoginVM: notification permission stack: $st');
+    }
+  }
+
+  /// Runs after Home is shown. Must not block navigation on login success.
+  ///
+  /// Requests microphone permission so iOS shows the Mic toggle in Settings and
+  /// voice features can work without a "silent no-op" experience.
+  ///
+  /// On iOS, Speech Recognition permission is separate from microphone and is
+  /// required for `speech_to_text` to function.
+  Future<void> _requestMicrophoneAndSpeechPermissionAfterLogin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance().timeout(_prefsTimeout);
+      if (!(prefs.getBool(PreferenceHelper.appMicrophoneUserEnabled) ?? true)) {
+        return;
+      }
+
+      final micStatus = await Permission.microphone
+          .request()
+          .timeout(_microphonePermissionTimeout);
+      if (!micStatus.isGranted) return;
+
+      if (Platform.isIOS) {
+        // Speech Recognition permission is distinct on iOS.
+        await Permission.speech.request().timeout(_microphonePermissionTimeout);
+      }
+    } catch (e, st) {
+      log('LoginVM: microphone/speech permission timeout or error: $e');
+      log('LoginVM: microphone/speech permission stack: $st');
     }
   }
 
@@ -161,6 +191,7 @@ class LoginVM extends BaseModel {
               (route) => false,
             );
             unawaited(_requestNotificationPermissionAfterLogin());
+            unawaited(_requestMicrophoneAndSpeechPermissionAfterLogin());
           }
         },
         failedResponse: (success, message) {
@@ -235,6 +266,7 @@ class LoginVM extends BaseModel {
           );
           // Notifications/FCM after navigation so login never appears stuck (Guideline 2.1).
           unawaited(_requestNotificationPermissionAfterLogin());
+          unawaited(_requestMicrophoneAndSpeechPermissionAfterLogin());
         },
         failedResponse: (success, message) {
           appPrint('------>Login Error : $message');

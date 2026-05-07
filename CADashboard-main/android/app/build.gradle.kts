@@ -49,10 +49,10 @@ android {
     }
      buildTypes {
       
- getByName("release") {
-           signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false
-            isShrinkResources = false
+getByName("debug") {
+            // Explicitly associate the debug signing config (optional, it's the default)
+            signingConfig = signingConfigs.getByName("debug")
+            // isDebuggable = true // This is also a default for the debug build type
         }
        
     }
