@@ -1,4 +1,5 @@
 import 'package:avatar_glow/avatar_glow.dart';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:cadashboard/core/utils/preference_helper.dart';
 import 'package:cadashboard/main.dart';
@@ -78,27 +79,47 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
       return;
     }
 
+    // Request Mic first (required for any audio input).
     final microPhoneStatus = await Permission.microphone.request();
-    if (microPhoneStatus.isDenied) {
-      _showPermissionSnackBar(microPhoneStatus);
-    } else if (microPhoneStatus.isGranted) {
+    if (!mounted) return;
+
+    if (microPhoneStatus.isGranted) {
+      // iOS Speech Recognition permission is separate and required for speech_to_text.
+      if (Platform.isIOS) {
+        final speechStatus = await Permission.speech.request();
+        if (!mounted) return;
+        if (!speechStatus.isGranted) {
+          _showPermissionSnackBar(permissionName: 'Speech Recognition', status: speechStatus);
+          return;
+        }
+      }
       await _initSpeechToText();
-    } else {
-      await openAppSettings().then((value) => _requestPermissions());
+      return;
     }
+
+    _showPermissionSnackBar(permissionName: 'Microphone', status: microPhoneStatus);
   }
 
-  void _showPermissionSnackBar(PermissionStatus cameraStatus) {
-    String message = 'Permissions required: ';
-    if (cameraStatus.isDenied) {
-      message += 'Microphone ';
+  void _showPermissionSnackBar({required String permissionName, required PermissionStatus status}) {
+    final isHardBlocked = status.isPermanentlyDenied || status.isRestricted;
+    String message;
+    if (Platform.isIOS && permissionName == 'Microphone') {
+      // iOS sometimes won't show a per-app toggle until the system prompt was shown.
+      // Give users the correct path and a fallback.
+      message = isHardBlocked
+          ? '$permissionName is blocked. Enable it in iOS Settings → Privacy & Security → Microphone (or in the app’s Settings page).'
+          : '$permissionName permission is required. If you don’t see a Microphone toggle in Settings yet, close/reopen the app and try again, or reinstall to trigger the permission prompt.';
+    } else {
+      message = isHardBlocked
+          ? '$permissionName is blocked. Please enable it in settings.'
+          : '$permissionName permission is required. Please allow it.';
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: Colors.redAccent,
         content: Text(
-          '$message permission is required. Please enable it in settings.',
+          message,
           style: const TextStyle(color: Colors.white),
         ),
         action: SnackBarAction(

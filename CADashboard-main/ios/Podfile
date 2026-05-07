@@ -44,6 +44,9 @@ post_install do |installer|
       # Enable camera permission for permission_handler (Take Photo / Scan Document)
       defs = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
       defs << 'PERMISSION_CAMERA=1' unless defs.include?('PERMISSION_CAMERA=1')
+      # Enable microphone + speech recognition permissions for permission_handler (speech_to_text)
+      defs << 'PERMISSION_MICROPHONE=1' unless defs.include?('PERMISSION_MICROPHONE=1')
+      defs << 'PERMISSION_SPEECH_RECOGNIZER=1' unless defs.include?('PERMISSION_SPEECH_RECOGNIZER=1')
     end
   end
 end
