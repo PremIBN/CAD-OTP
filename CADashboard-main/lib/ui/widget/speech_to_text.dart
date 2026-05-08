@@ -45,7 +45,6 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
   @override
   void initState() {
     super.initState();
-    _requestPermissions();
     appPrint("AAA : ${speechToText.hasError}");
     speechEnabled.addListener(() {
       appPrint("addListener");
@@ -55,6 +54,35 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
         Navigator.pop(context);
       }
     });
+  }
+
+  Future<bool> _showMicPrePermissionDialog() async {
+    if (!mounted) return false;
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Microphone Access'),
+        content: const Text('CADashboard would like to access Microphone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Allow'),
+          ),
+        ],
+      ),
+    );
+    return result == true;
+  }
+
+  Future<void> _onMicTap() async {
+    final proceed = await _showMicPrePermissionDialog();
+    if (!proceed) return;
+    await _requestPermissions();
   }
 
   @override
@@ -196,11 +224,7 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
               ),
               const SizedBox(height: 30),
               GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _startListening();
-                  });
-                },
+                onTap: _onMicTap,
                 child: AvatarGlow(
                   curve: Curves.decelerate,
                   repeat: true,

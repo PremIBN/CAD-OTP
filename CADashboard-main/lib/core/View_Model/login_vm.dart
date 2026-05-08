@@ -191,7 +191,6 @@ class LoginVM extends BaseModel {
               (route) => false,
             );
             unawaited(_requestNotificationPermissionAfterLogin());
-            unawaited(_requestMicrophoneAndSpeechPermissionAfterLogin());
           }
         },
         failedResponse: (success, message) {
@@ -266,7 +265,6 @@ class LoginVM extends BaseModel {
           );
           // Notifications/FCM after navigation so login never appears stuck (Guideline 2.1).
           unawaited(_requestNotificationPermissionAfterLogin());
-          unawaited(_requestMicrophoneAndSpeechPermissionAfterLogin());
         },
         failedResponse: (success, message) {
           appPrint('------>Login Error : $message');
