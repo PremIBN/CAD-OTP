@@ -80,6 +80,21 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
   }
 
   Future<void> _onMicTap() async {
+    // If permissions are already granted, don't show the custom dialog again.
+    final micStatus = await Permission.microphone.status;
+    if (micStatus.isGranted) {
+      if (Platform.isIOS) {
+        final speechStatus = await Permission.speech.status;
+        if (speechStatus.isGranted) {
+          await _initSpeechToText();
+          return;
+        }
+      } else {
+        await _initSpeechToText();
+        return;
+      }
+    }
+
     final proceed = await _showMicPrePermissionDialog();
     if (!proceed) return;
     await _requestPermissions();
