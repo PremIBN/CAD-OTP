@@ -20,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io' show Platform;
 
 import '../services/location_dialog_service.dart';
+import '../services/notification_permission_dialog_service.dart';
 
 class LoginVM extends BaseModel {
   // TextEditingController usernameController = TextEditingController(text: "sugam.joshi"); //9049295966
@@ -190,7 +191,10 @@ class LoginVM extends BaseModel {
               cusNavigate(HomeScreen(tokenId: response.tokenId)),
               (route) => false,
             );
-            unawaited(_requestNotificationPermissionAfterLogin());
+            // Ensure any location UX completes first, then show notifications prompt on Home.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              unawaited(NotificationPermissionDialogService.show(navigatorKey.currentContext!)));
+            });
           }
         },
         failedResponse: (success, message) {
@@ -264,7 +268,9 @@ class LoginVM extends BaseModel {
             (route) => false,
           );
           // Notifications/FCM after navigation so login never appears stuck (Guideline 2.1).
-          unawaited(_requestNotificationPermissionAfterLogin());
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            unawaited(NotificationPermissionDialogService.show(navigatorKey.currentContext!)));
+          });
         },
         failedResponse: (success, message) {
           appPrint('------>Login Error : $message');
