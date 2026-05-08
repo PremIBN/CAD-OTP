@@ -1,6 +1,7 @@
 import 'package:cadashboard/core/services/fcm_token_sync.dart';
 import 'package:cadashboard/core/utils/preference_helper.dart';
 import 'package:cadashboard/ui/widget/language_selection_sheet.dart';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,6 +85,33 @@ class _AppPermissionsSettingsScreenState extends State<AppPermissionsSettingsScr
   bool get _notifSwitchOn => _osAllowsNotif(_notif) && _notifUserOn;
 
   bool get _micSwitchOn => _osAllowsMic(_mic) && _micUserOn;
+
+  Future<void> _showEnableInPhoneSettingsDialog({
+    required String title,
+    required String message,
+  }) async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _onNotificationToggle(bool wantOn) async {
     final prefs = await SharedPreferences.getInstance();
