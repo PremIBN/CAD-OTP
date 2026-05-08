@@ -193,7 +193,7 @@ class LoginVM extends BaseModel {
             );
             // Ensure any location UX completes first, then show notifications prompt on Home.
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              unawaited(NotificationPermissionDialogService.show(navigatorKey.currentContext!)));
+              unawaited(NotificationPermissionDialogService.show(navigatorKey.currentContext!));
             });
           }
         },
@@ -269,7 +269,7 @@ class LoginVM extends BaseModel {
           );
           // Notifications/FCM after navigation so login never appears stuck (Guideline 2.1).
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            unawaited(NotificationPermissionDialogService.show(navigatorKey.currentContext!)));
+            unawaited(NotificationPermissionDialogService.show(navigatorKey.currentContext!));
           });
         },
         failedResponse: (success, message) {
