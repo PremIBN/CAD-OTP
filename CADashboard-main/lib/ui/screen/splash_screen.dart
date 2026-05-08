@@ -35,20 +35,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<bool> notificationPermission() async {
-    if(Platform.isAndroid){
-      final permission = await Permission.notification.request();
-      if (permission == PermissionStatus.denied) {
-        final permission = await Permission.notification.request();
-        if (permission == PermissionStatus.denied) {
-          showSnackBar(context: context, message: 'Notification permissions are denied', isError: true);
-          return false;
-        }
-      }
-      if (permission == PermissionStatus.permanentlyDenied) {
-        showSnackBar(context: context, message: 'Notification permissions are permanently denied, we cannot request permissions.', isError: true);
-        return false;
-      }
-    }
     return true;
   }
 

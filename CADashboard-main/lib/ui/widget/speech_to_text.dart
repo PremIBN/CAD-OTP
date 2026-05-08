@@ -225,6 +225,13 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
     appPrint("object : $lastWords :: ${speechEnabled.value}");
   }
 
+  Future<void> _finishListening() async {
+    await _stopListening();
+    if (mounted) {
+      speechEnabled.value = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -270,6 +277,16 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
                   ),
                 ),
               ),
+              if (speech) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: 140,
+                  child: ElevatedButton(
+                    onPressed: _finishListening,
+                    child: const Text('Done'),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
             ],
           );

@@ -80,43 +80,8 @@ notification() async {
 }
 
 Future<void> requestNotificationPermission() async {
-  final prefs = await SharedPreferences.getInstance();
-  if (!(prefs.getBool(PreferenceHelper.appNotificationsUserEnabled) ?? true)) {
-    return;
-  }
-  if (Platform.isAndroid) {
-    final androidInfo = await Permission.notification.status;
-
-    if (androidInfo.isDenied || androidInfo.isPermanentlyDenied) {
-      final result = await Permission.notification.request();
-
-      if (result.isGranted) {
-        await notification();
-        appPrint("Notification permission granted on Android!");
-      } else {
-        appPrint("Notification permission denied on Android.");
-      }
-    } else {
-      await notification();
-      appPrint("Notification permission already granted on Android.");
-    }
-  } else if (Platform.isIOS) {
-    final iosInfo = await Permission.notification.status;
-
-    if (iosInfo.isDenied || iosInfo.isPermanentlyDenied) {
-      final result = await Permission.notification.request();
-
-      if (result.isGranted) {
-        await notification();
-        appPrint("Notification permission granted on iOS!");
-      } else {
-        appPrint("Notification permission denied on iOS.");
-      }
-    } else {
-      await notification();
-      appPrint("Notification permission already granted on iOS.");
-    }
-  }
+  // Intentionally no-op. Notification permission UX is handled by
+  // NotificationPermissionDialogService after successful login.
 }
 
 appCrashlytics() {

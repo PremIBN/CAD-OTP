@@ -88,17 +88,24 @@ class _AppPermissionsSettingsScreenState extends State<AppPermissionsSettingsScr
   Future<void> _onNotificationToggle(bool wantOn) async {
     final prefs = await SharedPreferences.getInstance();
     if (wantOn) {
-      final result = await Permission.notification.request();
+      // Do not trigger the system permission prompt from the in-app Settings toggle.
+      // If OS permission is already granted, we can enable the in-app flag.
+      // Otherwise, guide the user to enable it from Phone Settings.
+      final status = await Permission.notification.status;
       if (!mounted) return;
-      if (result.isPermanentlyDenied) {
-        await openAppSettings();
+      if (_osAllowsNotif(status)) {
+        await prefs.setBool(PreferenceHelper.appNotificationsUserEnabled, true);
+        await registerFcmTokenAndRequestPlatformPermission();
         await _load();
         return;
       }
-      if (_osAllowsNotif(result)) {
-        await prefs.setBool(PreferenceHelper.appNotificationsUserEnabled, true);
-        await registerFcmTokenAndRequestPlatformPermission();
-      }
+
+      await _showEnableInPhoneSettingsDialog(
+        title: 'Enable Notifications',
+        message: Platform.isIOS
+            ? 'To enable notifications, go to iPhone Settings → Notifications → CADashboard → turn ON “Allow Notifications”.'
+            : 'To enable notifications, go to Phone Settings → Apps → CADashboard → Notifications → Allow.',
+      );
       await _load();
       return;
     }
@@ -111,16 +118,23 @@ class _AppPermissionsSettingsScreenState extends State<AppPermissionsSettingsScr
   Future<void> _onMicrophoneToggle(bool wantOn) async {
     final prefs = await SharedPreferences.getInstance();
     if (wantOn) {
-      final result = await Permission.microphone.request();
+      // Do not trigger the system permission prompt from the in-app Settings toggle.
+      // If OS permission is already granted, we can enable the in-app flag.
+      // Otherwise, guide the user to enable it from Phone Settings.
+      final status = await Permission.microphone.status;
       if (!mounted) return;
-      if (result.isPermanentlyDenied) {
-        await openAppSettings();
+      if (status.isGranted) {
+        await prefs.setBool(PreferenceHelper.appMicrophoneUserEnabled, true);
         await _load();
         return;
       }
-      if (result.isGranted) {
-        await prefs.setBool(PreferenceHelper.appMicrophoneUserEnabled, true);
-      }
+
+      await _showEnableInPhoneSettingsDialog(
+        title: 'Enable Microphone',
+        message: Platform.isIOS
+            ? 'To enable microphone, go to iPhone Settings → Privacy → Microphone → turn ON “CADashboard”.'
+            : 'To enable microphone, go to Phone Settings → Apps → CADashboard → Permissions → Microphone.',
+      );
       await _load();
       return;
     }
