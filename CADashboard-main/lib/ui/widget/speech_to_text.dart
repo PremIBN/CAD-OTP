@@ -62,16 +62,16 @@ class _CustomSpeechToTextState extends State<CustomSpeechToText> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('Microphone Access'),
-        content: const Text('CADashboard would like to access Microphone.'),
+        title: const Text('Cashdashboard Would you like access Microphone'),
+        content: const Text('This App requires microphone access for voice recording feature'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Allow'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
           ),
         ],
       ),
