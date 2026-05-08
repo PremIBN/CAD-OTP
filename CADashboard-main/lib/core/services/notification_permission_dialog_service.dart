@@ -85,15 +85,14 @@ class NotificationPermissionDialogService {
                                     btnName: "Allow",
                                     localizeText: false,
                                     onTap: () async {
-                                      final result =
-                                          await Permission.notification.request();
+                                      final result = await Permission.notification
+                                          .request();
                                       if (result.isPermanentlyDenied ||
                                           result.isRestricted) {
                                         await openAppSettings();
                                       }
                                       if (_osAllowsNotif(result)) {
-                                        final p =
-                                            await SharedPreferences.getInstance();
+                                        final p = await SharedPreferences.getInstance();
                                         await p.setBool(
                                           PreferenceHelper.appNotificationsUserEnabled,
                                           true,
@@ -109,7 +108,7 @@ class NotificationPermissionDialogService {
                                   child: CusBtn(
                                     btnName: "Cancel",
                                     localizeText: false,
-                                    bGColor: Colors.grey.shade600,
+                                    bGColor: Colors.grey,
                                     onTap: () {
                                       hide();
                                     },
