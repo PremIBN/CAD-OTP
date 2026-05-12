@@ -54,6 +54,55 @@ class ApiClient{
     return result;
   }
 
+  /// Form body as `application/x-www-form-urlencoded` with UTF-8 (safe for `&`, `+`, Unicode in passwords).
+  Future withOutTokenPostUrlEncoded({
+    required Uri url,
+    Map<String, String>? queryParam,
+    Map<String, String>? header,
+    required Map<String, String> fields,
+  }) async {
+    final bodyEncoded = fields.entries
+        .map(
+          (e) =>
+              '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}',
+        )
+        .join('&');
+
+    dynamic result;
+    try {
+      log('---->Urls : ${url.replace(queryParameters: queryParam)} (form POST)');
+
+      final response = await http
+          .post(
+            url.replace(queryParameters: queryParam),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+              ...?header,
+            },
+            body: bodyEncoded,
+            encoding: utf8,
+          )
+          .timeout(_defaultTimeout);
+      result = await handleResponse(response);
+    } on TimeoutException catch (e) {
+      result = {'Success': 0, 'Message': 'Server Time out'};
+      appPrint(e);
+    } on SocketException catch (e) {
+      result = {'Success': 0, 'Message': 'No Internet Found'};
+      appPrint(e);
+    } on Exception catch (e) {
+      result = {
+        'Success': 0,
+        'Message': e.toString().trim().isNotEmpty ? e.toString() : 'Something went wrong',
+      };
+      appPrint(e);
+    } on Error catch (e) {
+      result = {'Success': 0, 'Message': 'Something went wrong'};
+      appPrint(e);
+    }
+    return result;
+  }
+
   Future withOutTokenPostMethod({required Uri url, Map<String, String>? queryParam, Map<String, String>? header, Map<String, dynamic>? body}) async {
     var result;
 
@@ -435,11 +484,33 @@ Future postMethod({
     log('----->${response.statusCode}');
     switch(response.statusCode){
       case 200:
-        return await jsonDecode(response.body);
+        try {
+          var raw = utf8.decode(response.bodyBytes);
+          raw = raw.trim();
+          if (raw.startsWith('\ufeff')) {
+            raw = raw.substring(1).trim();
+          }
+          return jsonDecode(raw);
+        } catch (e) {
+          log('handleResponse 200 JSON parse failed: $e');
+          final preview = response.body.length > 200 ? '${response.body.substring(0, 200)}…' : response.body;
+          return {
+            'Success': 0,
+            'Message': 'Invalid response from server. $preview',
+            'StatusCode': response.statusCode,
+          };
+        }
       case 201:
         return response.body;
       case 203:
-        return await jsonDecode(response.body);
+        try {
+          var raw = utf8.decode(response.bodyBytes).trim();
+          if (raw.startsWith('\ufeff')) raw = raw.substring(1).trim();
+          return jsonDecode(raw);
+        } catch (e) {
+          log('handleResponse 203 JSON parse failed: $e');
+          return {'Success': 0, 'Message': errorMessage, 'StatusCode': response.statusCode};
+        }
       case 204:
         return {"Success": 0, "Message": errorMessage, "StatusCode": response.statusCode};
       case 304:

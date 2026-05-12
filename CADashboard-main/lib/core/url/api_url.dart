@@ -6,6 +6,7 @@ class Urls{
   static const String Authenticate = '${baseUrl}Authenticate/';
   static const String HomeDashboard = '${baseUrl}HomeDashboard/';
   static const String Task = '${baseUrl}Task/';
+  /// ASP.NET Web API: `ComboBoxController` → route segment **ComboBox** (suffix `Controller` omitted).
   static const String ComboBox = '${baseUrl}ComboBox/';
   static const String Org = '${baseUrl}Org';
   static const String SavePanNumber = '${baseUrl}OrgAttributes/AddUpdateOrgAttributeValue';
@@ -21,6 +22,10 @@ class Urls{
   static const String ValidateToken = '${Authenticate}ValidateToken';
   static const String LogoutUser = '${Authenticate}LogoutUser';
   static const String forgotPassword = '${Authenticate}RequestForgotPassword';
+  /// OTP login (WhatsApp/SMS) - backend-driven.
+  static const String GenerateLoginOTP = '${Authenticate}GenerateLoginOTP';
+  /// Verifies OTP and returns login credentials (existing backend API).
+  static const String ValidateOTPAndLogin = '${Authenticate}ValidateOTPAndLogin';
   static const String AddLoggedInAreaAddress = '${HomeDashboard}AddLoggedInAreaAddress';
   static const String GetAttendanceDetails = '${HomeDashboard}GetAttendanceDetails';
   static const String MarkAttendance = '${HomeDashboard}MarkAttendance';
@@ -51,7 +56,15 @@ class Urls{
   static const String GetDepartment = '${ComboBox}GetAllDepartments';
   static const String ClientDropDown = '${ComboBox}GetCodeValueByCodeGroup';
   static const String clientSupplyTypeDropDown = '${ComboBox}GetCodeValueByCodeGroup';
-  static const String STDCodeList = '${ComboBox}GetAllCountry';
+  /// [HttpGet] `ComboBoxController.GetAllCountry()`
+  ///
+  /// **Full URL:** `https://www.cadashboard.com/web/api/ComboBox/GetAllCountry`
+  ///
+  /// JSON rows include `STDCode`, `CountryCode`, `CodeName`, `CodeID`, etc.
+  /// Used for country / STD list (OTP login picker, Add Client STD, etc.).
+  static const String comboBoxControllerGetAllCountry = '${ComboBox}GetAllCountry';
+  static const String GetAllCountry = comboBoxControllerGetAllCountry;
+  static const String STDCodeList = comboBoxControllerGetAllCountry;
   static const String GroupTypeDropDown = '${ComboBox}GetOrgnGroupListByID';
   static const String BranchList = '${ComboBox}GetBranchListByID';
   static const String FinancialYear = '${ComboBox}GetFinancialYearList';

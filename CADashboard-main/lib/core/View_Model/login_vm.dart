@@ -303,6 +303,11 @@ class LoginVM extends BaseModel {
   }
 
   void setPreferences(SharedPreferences preferences, LoginModel response) async {
+    await persistLoginProfile(preferences, response);
+  }
+
+  /// Same fields as [setPreferences] — used after **OTP** login so drawer/profile match password login.
+  static Future<void> persistLoginProfile(SharedPreferences preferences, LoginModel response) async {
     await preferences.setString(PreferenceHelper.userToken, response.tokenId!);
     await preferences.setString(PreferenceHelper.loginDetailID, response.loginDetailId.toString());
     await preferences.setString(PreferenceHelper.userName, response.userName!);
@@ -312,7 +317,7 @@ class LoginVM extends BaseModel {
     await preferences.setString(PreferenceHelper.currency, response.currencyId.toString());
     await preferences.setInt(PreferenceHelper.showOtherTaskDetails, response.showtaskotherdetails ?? 0);
     await preferences.setInt(PreferenceHelper.mandateNumber, response.isMandateNoCompulsory ?? 0);
-    if(response.isBackDatedActualEffortsRestricted == 1){
+    if (response.isBackDatedActualEffortsRestricted == 1) {
       await preferences.setInt(PreferenceHelper.restrictTillDays, response.restrictTillDays ?? 0);
     } else {
       await preferences.remove(PreferenceHelper.restrictTillDays);
